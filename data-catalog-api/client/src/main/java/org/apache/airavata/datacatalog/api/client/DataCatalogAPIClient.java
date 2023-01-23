@@ -38,7 +38,8 @@ public class DataCatalogAPIClient {
         ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
         try {
             DataCatalogAPIClient client = new DataCatalogAPIClient(channel);
-            DataProduct dataProduct = DataProduct.newBuilder().setName("testing").build();
+            DataProduct dataProduct = DataProduct.newBuilder().setName("testing").setMetadata("{\"foo\": \"bar\"}")
+                    .build();
             DataProduct result = client.createDataProduct(dataProduct);
             System.out.println(MessageFormat.format("Created data product with id [{0}]", result.getDataProductId()));
 

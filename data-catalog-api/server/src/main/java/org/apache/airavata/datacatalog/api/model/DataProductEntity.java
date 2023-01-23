@@ -1,5 +1,10 @@
 package org.apache.airavata.datacatalog.api.model;
 
+import org.hibernate.annotations.Type;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,6 +39,10 @@ public class DataProductEntity {
     @Column(name="name", nullable = false)
     private String name;
 
+    @Type(JsonType.class)
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    private JsonNode metadata;
+
     public Long getDataProductId() {
         return dataProductId;
     }
@@ -64,6 +73,14 @@ public class DataProductEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public JsonNode getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(JsonNode metadata) {
+        this.metadata = metadata;
     }
 
     @Override

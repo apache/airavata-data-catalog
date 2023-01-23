@@ -25,6 +25,7 @@ message DataProduct {
     string data_product_id = 1;
     optional string parent_data_product_id = 2;
     string name = 3;
+    optional string metadata = 4;
 }
 
 message DataProductCreateRequest {
