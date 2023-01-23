@@ -10,9 +10,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name="data_product")
+@Table(name = "data_product", uniqueConstraints = { @UniqueConstraint(columnNames = { "external_id" }) })
 public class DataProductEntity {
 
     @Id
