@@ -30,6 +30,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     public void createDataProduct(DataProductCreateRequest request,
             StreamObserver<DataProductCreateResponse> responseObserver) {
 
+        // TODO: SharingManager.resolveUser
         logger.info("Creating data product {}", request.getDataProduct());
         DataProductEntity dataProductEntity = new DataProductEntity();
         dataProductEntity.setExternalId(UUID.randomUUID().toString());
@@ -50,6 +51,9 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             }
         }
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
+
+        // TODO: SharingManager.grantPermissionToUser(userInfo, dataProduct,
+        // Permission.OWNER)
 
         DataProductCreateResponse.Builder responseBuilder = DataProductCreateResponse.newBuilder();
         responseBuilder.getDataProductBuilder()

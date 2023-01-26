@@ -22,27 +22,28 @@ import jakarta.persistence.UniqueConstraint;
 public class DataProductEntity {
 
     @Id
-    @SequenceGenerator(name="data_product_data_product_id_seq", sequenceName = "data_product_data_product_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "data_product_data_product_id_seq", sequenceName = "data_product_data_product_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "data_product_data_product_id_seq")
-    @Column(name="data_product_id")
+    @Column(name = "data_product_id")
     private Long dataProductId;
 
     @ManyToOne(optional = true)
-    @JoinColumn(name="parent_data_product_id", referencedColumnName = "data_product_id", nullable = true)
+    @JoinColumn(name = "parent_data_product_id", referencedColumnName = "data_product_id", nullable = true)
     private DataProductEntity parentDataProductEntity;
 
     @Basic
-    @Column(name="external_id", nullable = false)
+    @Column(name = "external_id", nullable = false)
     private String externalId;
 
     @Basic
-    @Column(name="name", nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Type(JsonType.class)
     @Column(name = "metadata", columnDefinition = "jsonb")
     private JsonNode metadata;
 
+    // TODO: ManyToOne mapping to owner: UserEntity
     public Long getDataProductId() {
         return dataProductId;
     }
