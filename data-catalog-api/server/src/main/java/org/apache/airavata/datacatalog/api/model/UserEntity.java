@@ -19,6 +19,10 @@ public class UserEntity {
     @Column(name = "user_id")
     private Long userId;
 
+    /**
+     * The identifier for the user. This external identifier comes from the user
+     * management service that data catalog is configured to use.
+     */
     @Basic
     @Column(name = "external_id", nullable = false)
     private String externalId;
