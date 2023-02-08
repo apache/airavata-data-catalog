@@ -10,7 +10,8 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "user")
+// 'user' is a reserved word, so naming this table 'user_table'
+@Table(name = "user_table")
 public class UserEntity {
 
     @Id
