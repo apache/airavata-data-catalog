@@ -70,7 +70,27 @@ message DataProductCreateRequest {
 message DataProductCreateResponse {
     DataProduct data_product = 1;
 }
+message DataProductUpdateRequest {
+    DataProduct data_product = 1;
+}
+message DataProductUpdateResponse {
+    DataProduct data_product = 1;
+}
+message DataProductGetRequest {
+    string data_product_id = 1;
+}
+message DataProductGetResponse {
+    DataProduct data_product = 1;
+}
+message DataProductDeleteRequest {
+    string data_product_id = 1;
+}
+message DataProductDeleteResponse {
+}
 
 service DataCatalogAPIService {
     rpc createDataProduct(DataProductCreateRequest) returns (DataProductCreateResponse){}
+    rpc updateDataProduct(DataProductUpdateRequest) returns (DataProductUpdateResponse){}
+    rpc getDataProduct(DataProductGetRequest) returns (DataProductGetResponse){}
+    rpc deleteDataProduct(DataProductDeleteRequest) returns (DataProductDeleteResponse){}
 }
