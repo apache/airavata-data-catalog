@@ -1,20 +1,42 @@
 package org.apache.airavata.datacatalog.api.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.airavata.datacatalog.api.DataCatalogAPIServiceGrpc;
 import org.apache.airavata.datacatalog.api.DataProduct;
+import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaRequest;
+import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaResponse;
 import org.apache.airavata.datacatalog.api.DataProductCreateRequest;
 import org.apache.airavata.datacatalog.api.DataProductCreateResponse;
 import org.apache.airavata.datacatalog.api.DataProductDeleteRequest;
 import org.apache.airavata.datacatalog.api.DataProductDeleteResponse;
 import org.apache.airavata.datacatalog.api.DataProductGetRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetResponse;
+import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaRequest;
+import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaResponse;
 import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaCreateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaField;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldDeleteRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldDeleteResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
 import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
+import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaFieldMapper;
+import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaMapper;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
+import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
+import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
 import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
+import org.apache.airavata.datacatalog.api.repository.MetadataSchemaFieldRepository;
+import org.apache.airavata.datacatalog.api.repository.MetadataSchemaRepository;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +53,19 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     DataProductRepository dataProductRepository;
 
     @Autowired
-    DataProductMapper dataProductMapper = new DataProductMapper();
+    MetadataSchemaRepository metadataSchemaRepository;
+
+    @Autowired
+    MetadataSchemaFieldRepository metadataSchemaFieldRepository;
+
+    @Autowired
+    DataProductMapper dataProductMapper;
+
+    @Autowired
+    MetadataSchemaMapper metadataSchemaMapper;
+
+    @Autowired
+    MetadataSchemaFieldMapper metadataSchemaFieldMapper;
 
     @Override
     public void createDataProduct(DataProductCreateRequest request,
@@ -92,5 +126,88 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         DataProductDeleteResponse.Builder responseBuilder = DataProductDeleteResponse.newBuilder();
         responseObserver.onNext(responseBuilder.build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest request,
+            StreamObserver<DataProductAddToMetadataSchemaResponse> responseObserver) {
+        // TODO Auto-generated method stub
+        super.addDataProductToMetadataSchema(request, responseObserver);
+    }
+
+    @Override
+    public void createMetadataSchema(MetadataSchemaCreateRequest request,
+            StreamObserver<MetadataSchemaCreateResponse> responseObserver) {
+
+        MetadataSchemaEntity metadataSchemaEntity = new MetadataSchemaEntity();
+        metadataSchemaMapper.mapModelToEntity(request.getMetadataSchema(), metadataSchemaEntity);
+        MetadataSchemaEntity savedMetadataSchemaEntity = metadataSchemaRepository.save(metadataSchemaEntity);
+
+        MetadataSchemaCreateResponse.Builder responseBuilder = MetadataSchemaCreateResponse.newBuilder();
+        metadataSchemaMapper.mapEntityToModel(savedMetadataSchemaEntity, responseBuilder.getMetadataSchemaBuilder());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createMetadataSchemaField(MetadataSchemaFieldCreateRequest request,
+            StreamObserver<MetadataSchemaFieldCreateResponse> responseObserver) {
+
+        MetadataSchemaFieldEntity metadataSchemaFieldEntity = new MetadataSchemaFieldEntity();
+        metadataSchemaFieldMapper.mapModelToEntity(request.getMetadataSchemaField(), metadataSchemaFieldEntity);
+        MetadataSchemaFieldEntity savedMetadataSchemaFieldEntity = metadataSchemaFieldRepository
+                .save(metadataSchemaFieldEntity);
+
+        MetadataSchemaFieldCreateResponse.Builder responseBuilder = MetadataSchemaFieldCreateResponse.newBuilder();
+        metadataSchemaFieldMapper.mapEntityToModel(savedMetadataSchemaFieldEntity,
+                responseBuilder.getMetadataSchemaFieldBuilder());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteMetadataSchema(MetadataSchemaCreateRequest request,
+            StreamObserver<MetadataSchemaCreateResponse> responseObserver) {
+        // TODO Auto-generated method stub
+        super.deleteMetadataSchema(request, responseObserver);
+    }
+
+    @Override
+    public void deleteMetadataSchemaField(MetadataSchemaFieldDeleteRequest request,
+            StreamObserver<MetadataSchemaFieldDeleteResponse> responseObserver) {
+        // TODO Auto-generated method stub
+        super.deleteMetadataSchemaField(request, responseObserver);
+    }
+
+    @Override
+    public void getMetadataSchemaFields(MetadataSchemaFieldListRequest request,
+            StreamObserver<MetadataSchemaFieldListResponse> responseObserver) {
+
+        // TODO: handle case where schema doesn't exist
+        List<MetadataSchemaFieldEntity> metadataSchemaFieldEntities = metadataSchemaFieldRepository
+                .findByMetadataSchema_SchemaName(request.getSchemaName());
+
+        MetadataSchemaFieldListResponse.Builder responseBuilder = MetadataSchemaFieldListResponse.newBuilder();
+        for (MetadataSchemaFieldEntity metadataSchemaFieldEntity : metadataSchemaFieldEntities) {
+            MetadataSchemaField.Builder builder = responseBuilder.addMetadataSchemaFieldsBuilder();
+            metadataSchemaFieldMapper.mapEntityToModel(metadataSchemaFieldEntity, builder);
+        }
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onError(null);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest request,
+            StreamObserver<DataProductRemoveFromMetadataSchemaResponse> responseObserver) {
+        // TODO Auto-generated method stub
+        super.removeDataProductFromMetadataSchema(request, responseObserver);
+    }
+
+    @Override
+    public void updateMetadataSchemaField(MetadataSchemaFieldUpdateRequest request,
+            StreamObserver<MetadataSchemaFieldUpdateResponse> responseObserver) {
+        // TODO Auto-generated method stub
+        super.updateMetadataSchemaField(request, responseObserver);
     }
 }

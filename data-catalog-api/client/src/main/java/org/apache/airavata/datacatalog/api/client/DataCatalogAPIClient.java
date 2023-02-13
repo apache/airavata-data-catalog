@@ -1,6 +1,7 @@
 package org.apache.airavata.datacatalog.api.client;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.airavata.datacatalog.api.DataCatalogAPIServiceGrpc;
@@ -13,16 +14,21 @@ import org.apache.airavata.datacatalog.api.DataProductGetRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetResponse;
 import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.airavata.datacatalog.api.FieldValueType;
+import org.apache.airavata.datacatalog.api.MetadataSchema;
+import org.apache.airavata.datacatalog.api.MetadataSchemaCreateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaField;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;;
 
 public class DataCatalogAPIClient {
-
-    private static final Logger logger = LoggerFactory.getLogger(DataCatalogAPIClient.class);
 
     private final DataCatalogAPIServiceBlockingStub blockingStub;
 
@@ -52,6 +58,27 @@ public class DataCatalogAPIClient {
         DataProductDeleteRequest request = DataProductDeleteRequest.newBuilder().setDataProductId(dataProductId)
                 .build();
         blockingStub.deleteDataProduct(request);
+    }
+
+    public MetadataSchema createMetadataSchema(MetadataSchema metadataSchema) {
+        MetadataSchemaCreateRequest request = MetadataSchemaCreateRequest.newBuilder().setMetadataSchema(metadataSchema)
+                .build();
+        MetadataSchemaCreateResponse response = blockingStub.createMetadataSchema(request);
+        return response.getMetadataSchema();
+    }
+
+    public MetadataSchemaField createMetadataSchemaField(MetadataSchemaField metadataSchemaField) {
+        MetadataSchemaFieldCreateRequest request = MetadataSchemaFieldCreateRequest.newBuilder()
+                .setMetadataSchemaField(metadataSchemaField).build();
+        MetadataSchemaFieldCreateResponse response = blockingStub.createMetadataSchemaField(request);
+        return response.getMetadataSchemaField();
+    }
+
+    public List<MetadataSchemaField> getMetadataSchemaFields(String schemaName) {
+        MetadataSchemaFieldListRequest request = MetadataSchemaFieldListRequest.newBuilder().setSchemaName(schemaName)
+                .build();
+        MetadataSchemaFieldListResponse response = blockingStub.getMetadataSchemaFields(request);
+        return response.getMetadataSchemaFieldsList();
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -87,6 +114,33 @@ public class DataCatalogAPIClient {
             client.deleteDataProduct(result2.getDataProductId());
             System.out.println(
                     MessageFormat.format("Deleted data product with id [{0}]", result2.getDataProductId()));
+
+            MetadataSchema metadataSchema = MetadataSchema.newBuilder().setSchemaName("my_schema").build();
+            metadataSchema = client.createMetadataSchema(metadataSchema);
+
+            System.out.println(
+                    MessageFormat.format("Created metadata schema with name [{0}]", metadataSchema.getSchemaName()));
+
+            MetadataSchemaField field1 = MetadataSchemaField.newBuilder().setFieldName("field1")
+                    .setJsonPath("$.field1").setValueType(FieldValueType.FLOAT)
+                    .setSchemaName(metadataSchema.getSchemaName()).build();
+            field1 = client.createMetadataSchemaField(field1);
+            System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
+                    field1.getFieldName(), field1.getSchemaName()));
+
+            MetadataSchemaField field2 = MetadataSchemaField.newBuilder().setFieldName("field2")
+                    .setJsonPath("$.field2").setValueType(FieldValueType.FLOAT)
+                    .setSchemaName(metadataSchema.getSchemaName()).build();
+            field2 = client.createMetadataSchemaField(field2);
+            System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
+                    field2.getFieldName(), field2.getSchemaName()));
+
+            List<MetadataSchemaField> fields = client.getMetadataSchemaFields(metadataSchema.getSchemaName());
+            System.out.println(MessageFormat.format("Found {0} fields for schema {1}", fields.size(),
+                    metadataSchema.getSchemaName()));
+            for (MetadataSchemaField field : fields) {
+                System.out.println(MessageFormat.format("-> field {0}", field.getFieldName()));
+            }
 
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
