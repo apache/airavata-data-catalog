@@ -62,6 +62,7 @@ message DataProduct {
     optional string parent_data_product_id = 2;
     string name = 3;
     optional string metadata = 4;
+    string tenant_id = 5;
 }
 
 message DataProductCreateRequest {
