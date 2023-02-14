@@ -1,3 +1,7 @@
 target
 .vscode
 logs
+.idea
+.iml
+.ipr
+.iws
