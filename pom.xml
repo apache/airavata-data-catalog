@@ -43,7 +43,7 @@ under the License.
     <slf4j.version>2.0.6</slf4j.version>
     <os.maven.plugin>1.6.2</os.maven.plugin>
     <protobuf.maven.plugin>0.6.1</protobuf.maven.plugin>
-    <protobuf.protoc.version>3.21.7</protobuf.protoc.version>
+    <protobuf.protoc.version>3.21.11</protobuf.protoc.version>
     <grpc.version>1.52.1</grpc.version>
     <protoc-gen-grpc-java.version>${grpc.version}</protoc-gen-grpc-java.version>
     <tomcat.annotations-api.version>6.0.53</tomcat.annotations-api.version>
