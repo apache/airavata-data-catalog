@@ -28,6 +28,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
 import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaFieldMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaMapper;
@@ -41,10 +43,13 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 @GRpcService
+@Transactional
 public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalogAPIServiceImplBase {
 
     private static final Logger logger = LoggerFactory.getLogger(DataCatalogAPIService.class);
@@ -76,7 +81,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         DataProductEntity dataProductEntity = new DataProductEntity();
         dataProductEntity.setExternalId(UUID.randomUUID().toString());
         dataProductMapper.mapModelToEntity(request.getDataProduct(), dataProductEntity);
-        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
+        DataProductEntity savedDataProductEntity = dataProductRepository.saveAndFlush(dataProductEntity);
 
         // TODO: SharingManager.grantPermissionToUser(userInfo, dataProduct,
         // Permission.OWNER)
@@ -131,8 +136,33 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     @Override
     public void addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest request,
             StreamObserver<DataProductAddToMetadataSchemaResponse> responseObserver) {
-        // TODO Auto-generated method stub
-        super.addDataProductToMetadataSchema(request, responseObserver);
+        String dataProductId = request.getDataProductId();
+        // TODO: handle data product not found
+        DataProductEntity dataProduct = dataProductRepository.findByExternalId(dataProductId);
+        String schemaName = request.getSchemaName();
+        // TODO: handle metadata schema not found
+        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
+        dataProduct.addMetadataSchema(metadataSchemaEntity);
+
+        DataProductAddToMetadataSchemaResponse.Builder responseBuilder = DataProductAddToMetadataSchemaResponse
+                .newBuilder();
+        dataProductMapper.mapEntityToModel(dataProduct, responseBuilder.getDataProductBuilder());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getMetadataSchema(MetadataSchemaGetRequest request,
+            StreamObserver<MetadataSchemaGetResponse> responseObserver) {
+        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(request.getSchemaName());
+        if (metadataSchemaEntity == null) {
+            responseObserver.onError(Status.NOT_FOUND.asException());
+            responseObserver.onCompleted();
+        }
+        MetadataSchemaGetResponse.Builder responseBuilder = MetadataSchemaGetResponse.newBuilder();
+        metadataSchemaMapper.mapEntityToModel(metadataSchemaEntity, responseBuilder.getMetadataSchemaBuilder());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 
     @Override
@@ -193,15 +223,26 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             metadataSchemaFieldMapper.mapEntityToModel(metadataSchemaFieldEntity, builder);
         }
         responseObserver.onNext(responseBuilder.build());
-        responseObserver.onError(null);
         responseObserver.onCompleted();
     }
 
     @Override
     public void removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest request,
             StreamObserver<DataProductRemoveFromMetadataSchemaResponse> responseObserver) {
-        // TODO Auto-generated method stub
-        super.removeDataProductFromMetadataSchema(request, responseObserver);
+
+        String dataProductId = request.getDataProductId();
+        // TODO: handle data product not found
+        DataProductEntity dataProduct = dataProductRepository.findByExternalId(dataProductId);
+        String schemaName = request.getSchemaName();
+        // TODO: handle metadata schema not found
+        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
+        dataProduct.removeMetadataSchema(metadataSchemaEntity);
+
+        DataProductRemoveFromMetadataSchemaResponse.Builder responseBuilder = DataProductRemoveFromMetadataSchemaResponse
+                .newBuilder();
+        dataProductMapper.mapEntityToModel(dataProduct, responseBuilder.getDataProductBuilder());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 
     @Override

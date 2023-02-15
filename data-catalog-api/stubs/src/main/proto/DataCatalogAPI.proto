@@ -62,6 +62,7 @@ message DataProduct {
     optional string parent_data_product_id = 2;
     string name = 3;
     optional string metadata = 4;
+    repeated string schema_name = 5;
 }
 
 enum FieldValueType {
@@ -105,6 +106,13 @@ message DataProductDeleteRequest {
 message DataProductDeleteResponse {
 }
 
+message MetadataSchemaGetRequest {
+    UserInfo user_info = 1;
+    string schema_name = 2;
+}
+message MetadataSchemaGetResponse {
+    MetadataSchema metadata_schema = 1;
+}
 message MetadataSchemaCreateRequest {
     UserInfo user_info = 1;
     MetadataSchema metadata_schema = 2;
@@ -168,6 +176,7 @@ service DataCatalogAPIService {
     rpc updateDataProduct(DataProductUpdateRequest) returns (DataProductUpdateResponse){}
     rpc getDataProduct(DataProductGetRequest) returns (DataProductGetResponse){}
     rpc deleteDataProduct(DataProductDeleteRequest) returns (DataProductDeleteResponse){}
+    rpc getMetadataSchema(MetadataSchemaGetRequest) returns (MetadataSchemaGetResponse){}
     rpc createMetadataSchema(MetadataSchemaCreateRequest) returns (MetadataSchemaCreateResponse){}
     rpc deleteMetadataSchema(MetadataSchemaCreateRequest) returns (MetadataSchemaCreateResponse){}
     rpc createMetadataSchemaField(MetadataSchemaFieldCreateRequest) returns (MetadataSchemaFieldCreateResponse){}

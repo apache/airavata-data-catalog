@@ -7,11 +7,15 @@ import java.util.concurrent.TimeUnit;
 import org.apache.airavata.datacatalog.api.DataCatalogAPIServiceGrpc;
 import org.apache.airavata.datacatalog.api.DataCatalogAPIServiceGrpc.DataCatalogAPIServiceBlockingStub;
 import org.apache.airavata.datacatalog.api.DataProduct;
+import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaRequest;
+import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaResponse;
 import org.apache.airavata.datacatalog.api.DataProductCreateRequest;
 import org.apache.airavata.datacatalog.api.DataProductCreateResponse;
 import org.apache.airavata.datacatalog.api.DataProductDeleteRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetResponse;
+import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaRequest;
+import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaResponse;
 import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
 import org.apache.airavata.datacatalog.api.FieldValueType;
@@ -23,10 +27,14 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;;
 
 public class DataCatalogAPIClient {
 
@@ -67,6 +75,19 @@ public class DataCatalogAPIClient {
         return response.getMetadataSchema();
     }
 
+    public MetadataSchema getMetadataSchema(String schemaName) {
+        MetadataSchemaGetRequest request = MetadataSchemaGetRequest.newBuilder().setSchemaName(schemaName).build();
+        try {
+            MetadataSchemaGetResponse response = blockingStub.getMetadataSchema(request);
+            return response.getMetadataSchema();
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus() == Status.NOT_FOUND) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
     public MetadataSchemaField createMetadataSchemaField(MetadataSchemaField metadataSchemaField) {
         MetadataSchemaFieldCreateRequest request = MetadataSchemaFieldCreateRequest.newBuilder()
                 .setMetadataSchemaField(metadataSchemaField).build();
@@ -79,6 +100,21 @@ public class DataCatalogAPIClient {
                 .build();
         MetadataSchemaFieldListResponse response = blockingStub.getMetadataSchemaFields(request);
         return response.getMetadataSchemaFieldsList();
+    }
+
+    public DataProduct addDataProductToMetadataSchema(String dataProductId, String schemaName) {
+        DataProductAddToMetadataSchemaRequest request = DataProductAddToMetadataSchemaRequest.newBuilder()
+                .setDataProductId(dataProductId).setSchemaName(schemaName).build();
+        DataProductAddToMetadataSchemaResponse response = blockingStub.addDataProductToMetadataSchema(request);
+        return response.getDataProduct();
+    }
+
+    public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
+        DataProductRemoveFromMetadataSchemaRequest request = DataProductRemoveFromMetadataSchemaRequest.newBuilder()
+                .setDataProductId(dataProductId).setSchemaName(schemaName).build();
+        DataProductRemoveFromMetadataSchemaResponse response = blockingStub
+                .removeDataProductFromMetadataSchema(request);
+        return response.getDataProduct();
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -115,11 +151,19 @@ public class DataCatalogAPIClient {
             System.out.println(
                     MessageFormat.format("Deleted data product with id [{0}]", result2.getDataProductId()));
 
-            MetadataSchema metadataSchema = MetadataSchema.newBuilder().setSchemaName("my_schema").build();
-            metadataSchema = client.createMetadataSchema(metadataSchema);
-
-            System.out.println(
-                    MessageFormat.format("Created metadata schema with name [{0}]", metadataSchema.getSchemaName()));
+            // First check if metadata schema exists
+            MetadataSchema metadataSchema = client.getMetadataSchema("my_schema");
+            if (metadataSchema == null) {
+                metadataSchema = MetadataSchema.newBuilder().setSchemaName("my_schema").build();
+                metadataSchema = client.createMetadataSchema(metadataSchema);
+                System.out.println(
+                        MessageFormat.format("Created metadata schema with name [{0}]",
+                                metadataSchema.getSchemaName()));
+            } else {
+                System.out.println(
+                        MessageFormat.format("Found metadata schema with name [{0}]",
+                                metadataSchema.getSchemaName()));
+            }
 
             MetadataSchemaField field1 = MetadataSchemaField.newBuilder().setFieldName("field1")
                     .setJsonPath("$.field1").setValueType(FieldValueType.FLOAT)
@@ -141,6 +185,15 @@ public class DataCatalogAPIClient {
             for (MetadataSchemaField field : fields) {
                 System.out.println(MessageFormat.format("-> field {0}", field.getFieldName()));
             }
+
+            result = client.addDataProductToMetadataSchema(result.getDataProductId(), metadataSchema.getSchemaName());
+            System.out.println(MessageFormat.format("Added data product [{0}] to metadata schema [{1}]",
+                    result.getDataProductId(), metadataSchema.getSchemaName()));
+
+            result = client.removeDataProductFromMetadataSchema(result.getDataProductId(),
+                    metadataSchema.getSchemaName());
+            System.out.println(MessageFormat.format("Removed data product [{0}] from metadata schema [{1}]",
+                    result.getDataProductId(), metadataSchema.getSchemaName()));
 
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
