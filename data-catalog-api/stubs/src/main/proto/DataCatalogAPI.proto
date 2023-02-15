@@ -62,7 +62,7 @@ message DataProduct {
     optional string parent_data_product_id = 2;
     string name = 3;
     optional string metadata = 4;
-    repeated string schema_name = 5;
+    repeated string metadata_schemas = 5;
 }
 
 enum FieldValueType {

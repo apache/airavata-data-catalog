@@ -195,6 +195,17 @@ public class DataCatalogAPIClient {
             System.out.println(MessageFormat.format("Removed data product [{0}] from metadata schema [{1}]",
                     result.getDataProductId(), metadataSchema.getSchemaName()));
 
+            // Create data product that belongs to my_schema schema
+            DataProduct dataProduct3 = DataProduct.newBuilder()
+                    .setName("testing 3")
+                    .setMetadata("{\"foo\": \"bar\"}")
+                    .addMetadataSchemas("my_schema")
+                    .build();
+            DataProduct result3 = client.createDataProduct(dataProduct3);
+            System.out.println(
+                    MessageFormat.format("Created third data product [{0}], supporting schemas [{1}]",
+                            result3.getDataProductId(), result3.getMetadataSchemasList()));
+
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         }

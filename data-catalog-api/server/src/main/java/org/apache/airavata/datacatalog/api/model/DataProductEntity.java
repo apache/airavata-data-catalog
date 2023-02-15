@@ -1,5 +1,6 @@
 package org.apache.airavata.datacatalog.api.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.annotations.Type;
@@ -49,7 +50,7 @@ public class DataProductEntity {
 
     @ManyToMany
     @JoinTable(name = "data_product_metadata_schema", joinColumns = @JoinColumn(name = "data_product_id"), inverseJoinColumns = @JoinColumn(name = "metadata_schema_id"))
-    private Set<MetadataSchemaEntity> metadataSchemas;
+    private Set<MetadataSchemaEntity> metadataSchemas = new HashSet<>();
 
     // TODO: ManyToOne mapping to owner: UserEntity
     public Long getDataProductId() {
