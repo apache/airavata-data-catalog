@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface MetadataSchemaFieldRepository extends JpaRepository<MetadataSchemaFieldEntity, Long> {
 
     List<MetadataSchemaFieldEntity> findByMetadataSchema_SchemaName(String schemaName);
+
+    MetadataSchemaFieldEntity findByFieldNameAndSchema_SchemaName(String fieldName, String schemaName);
 }

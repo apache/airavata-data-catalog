@@ -19,6 +19,8 @@ import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaCreateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaDeleteRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaDeleteResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
@@ -196,17 +198,30 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     }
 
     @Override
-    public void deleteMetadataSchema(MetadataSchemaCreateRequest request,
-            StreamObserver<MetadataSchemaCreateResponse> responseObserver) {
-        // TODO Auto-generated method stub
-        super.deleteMetadataSchema(request, responseObserver);
+    public void deleteMetadataSchema(MetadataSchemaDeleteRequest request,
+            StreamObserver<MetadataSchemaDeleteResponse> responseObserver) {
+        // TODO: check that user has write access on metadata schema
+        // TODO: handle metadata schema not found
+        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository
+                .findBySchemaName(request.getMetadataSchema().getSchemaName());
+        metadataSchemaRepository.delete(metadataSchemaEntity);
+        MetadataSchemaDeleteResponse.Builder responseBuilder = MetadataSchemaDeleteResponse.newBuilder();
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 
     @Override
     public void deleteMetadataSchemaField(MetadataSchemaFieldDeleteRequest request,
             StreamObserver<MetadataSchemaFieldDeleteResponse> responseObserver) {
-        // TODO Auto-generated method stub
-        super.deleteMetadataSchemaField(request, responseObserver);
+        // TODO: check that user has write access on metadata schema field
+        // TODO: handle metadata schema field not found
+        MetadataSchemaFieldEntity metadataSchemaFieldEntity = metadataSchemaFieldRepository
+                .findByFieldNameAndSchema_SchemaName(request.getMetadataSchemaField().getFieldName(),
+                        request.getMetadataSchemaField().getSchemaName());
+        metadataSchemaFieldRepository.delete(metadataSchemaFieldEntity);
+        MetadataSchemaFieldDeleteResponse.Builder responseBuilder = MetadataSchemaFieldDeleteResponse.newBuilder();
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 
     @Override
@@ -248,7 +263,19 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     @Override
     public void updateMetadataSchemaField(MetadataSchemaFieldUpdateRequest request,
             StreamObserver<MetadataSchemaFieldUpdateResponse> responseObserver) {
-        // TODO Auto-generated method stub
-        super.updateMetadataSchemaField(request, responseObserver);
+
+        // TODO: check that user has write access on metadata schema field
+        // TODO: handle metadata schema field not found
+        MetadataSchemaFieldEntity metadataSchemaFieldEntity = metadataSchemaFieldRepository
+                .findByFieldNameAndSchema_SchemaName(request.getMetadataSchemaField().getFieldName(),
+                        request.getMetadataSchemaField().getSchemaName());
+        metadataSchemaFieldMapper.mapModelToEntity(request.getMetadataSchemaField(), metadataSchemaFieldEntity);
+        metadataSchemaFieldRepository.save(metadataSchemaFieldEntity);
+
+        MetadataSchemaFieldUpdateResponse.Builder responseBuilder = MetadataSchemaFieldUpdateResponse.newBuilder();
+        metadataSchemaFieldMapper.mapEntityToModel(metadataSchemaFieldEntity,
+                responseBuilder.getMetadataSchemaFieldBuilder());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 }

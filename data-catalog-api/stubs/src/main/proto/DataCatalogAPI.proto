@@ -178,7 +178,7 @@ service DataCatalogAPIService {
     rpc deleteDataProduct(DataProductDeleteRequest) returns (DataProductDeleteResponse){}
     rpc getMetadataSchema(MetadataSchemaGetRequest) returns (MetadataSchemaGetResponse){}
     rpc createMetadataSchema(MetadataSchemaCreateRequest) returns (MetadataSchemaCreateResponse){}
-    rpc deleteMetadataSchema(MetadataSchemaCreateRequest) returns (MetadataSchemaCreateResponse){}
+    rpc deleteMetadataSchema(MetadataSchemaDeleteRequest) returns (MetadataSchemaDeleteResponse){}
     rpc createMetadataSchemaField(MetadataSchemaFieldCreateRequest) returns (MetadataSchemaFieldCreateResponse){}
     rpc updateMetadataSchemaField(MetadataSchemaFieldUpdateRequest) returns (MetadataSchemaFieldUpdateResponse){}
     rpc deleteMetadataSchemaField(MetadataSchemaFieldDeleteRequest) returns (MetadataSchemaFieldDeleteResponse){}
