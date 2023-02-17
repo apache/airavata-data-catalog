@@ -217,7 +217,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         // TODO: check that user has write access on metadata schema field
         // TODO: handle metadata schema field not found
         MetadataSchemaFieldEntity metadataSchemaFieldEntity = metadataSchemaFieldRepository
-                .findByFieldNameAndSchema_SchemaName(request.getMetadataSchemaField().getFieldName(),
+                .findByFieldNameAndMetadataSchema_SchemaName(request.getMetadataSchemaField().getFieldName(),
                         request.getMetadataSchemaField().getSchemaName());
         metadataSchemaFieldRepository.delete(metadataSchemaFieldEntity);
         MetadataSchemaFieldDeleteResponse.Builder responseBuilder = MetadataSchemaFieldDeleteResponse.newBuilder();
@@ -268,7 +268,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         // TODO: check that user has write access on metadata schema field
         // TODO: handle metadata schema field not found
         MetadataSchemaFieldEntity metadataSchemaFieldEntity = metadataSchemaFieldRepository
-                .findByFieldNameAndSchema_SchemaName(request.getMetadataSchemaField().getFieldName(),
+                .findByFieldNameAndMetadataSchema_SchemaName(request.getMetadataSchemaField().getFieldName(),
                         request.getMetadataSchemaField().getSchemaName());
         metadataSchemaFieldMapper.mapModelToEntity(request.getMetadataSchemaField(), metadataSchemaFieldEntity);
         metadataSchemaFieldRepository.save(metadataSchemaFieldEntity);

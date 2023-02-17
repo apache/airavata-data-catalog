@@ -9,5 +9,5 @@ public interface MetadataSchemaFieldRepository extends JpaRepository<MetadataSch
 
     List<MetadataSchemaFieldEntity> findByMetadataSchema_SchemaName(String schemaName);
 
-    MetadataSchemaFieldEntity findByFieldNameAndSchema_SchemaName(String fieldName, String schemaName);
+    MetadataSchemaFieldEntity findByFieldNameAndMetadataSchema_SchemaName(String fieldName, String schemaName);
 }
