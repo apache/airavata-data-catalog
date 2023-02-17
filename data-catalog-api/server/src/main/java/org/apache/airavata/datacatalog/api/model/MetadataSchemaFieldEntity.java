@@ -14,9 +14,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "metadata_schema_field")
+@Table(name = "metadata_schema_field", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "field_name", "metadata_schema_id" }) })
 public class MetadataSchemaFieldEntity {
 
     @Id
