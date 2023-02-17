@@ -204,6 +204,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         // TODO: handle metadata schema not found
         MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository
                 .findBySchemaName(request.getMetadataSchema().getSchemaName());
+        metadataSchemaFieldRepository.deleteAll(metadataSchemaEntity.getMetadataSchemaFields());
         metadataSchemaRepository.delete(metadataSchemaEntity);
         MetadataSchemaDeleteResponse.Builder responseBuilder = MetadataSchemaDeleteResponse.newBuilder();
         responseObserver.onNext(responseBuilder.build());

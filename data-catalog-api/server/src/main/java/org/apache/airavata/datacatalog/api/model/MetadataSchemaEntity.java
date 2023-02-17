@@ -46,6 +46,14 @@ public class MetadataSchemaEntity {
         this.schemaName = schemaName;
     }
 
+    public Set<MetadataSchemaFieldEntity> getMetadataSchemaFields() {
+        return metadataSchemaFields;
+    }
+
+    public void setMetadataSchemaFields(Set<MetadataSchemaFieldEntity> metadataSchemaFields) {
+        this.metadataSchemaFields = metadataSchemaFields;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
