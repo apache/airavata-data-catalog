@@ -25,6 +25,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaCreateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldGetRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldGetResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
@@ -80,6 +82,20 @@ public class DataCatalogAPIClient {
         try {
             MetadataSchemaGetResponse response = blockingStub.getMetadataSchema(request);
             return response.getMetadataSchema();
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus() == Status.NOT_FOUND) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    public MetadataSchemaField getMetadataSchemaField(String schemaName, String fieldName) {
+        MetadataSchemaFieldGetRequest request = MetadataSchemaFieldGetRequest.newBuilder().setSchemaName(schemaName)
+                .setFieldName(fieldName).build();
+        try {
+            MetadataSchemaFieldGetResponse response = blockingStub.getMetadataSchemaField(request);
+            return response.getMetadataSchemaField();
         } catch (StatusRuntimeException e) {
             if (e.getStatus() == Status.NOT_FOUND) {
                 return null;
@@ -168,16 +184,32 @@ public class DataCatalogAPIClient {
             MetadataSchemaField field1 = MetadataSchemaField.newBuilder().setFieldName("field1")
                     .setJsonPath("$.field1").setValueType(FieldValueType.FLOAT)
                     .setSchemaName(metadataSchema.getSchemaName()).build();
-            field1 = client.createMetadataSchemaField(field1);
-            System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
-                    field1.getFieldName(), field1.getSchemaName()));
+            MetadataSchemaField field1Exists = client.getMetadataSchemaField(field1.getSchemaName(),
+                    field1.getFieldName());
+            if (field1Exists == null) {
+                field1 = client.createMetadataSchemaField(field1);
+                System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
+                        field1.getFieldName(), field1.getSchemaName()));
+            } else {
+                field1 = field1Exists;
+                System.out.println(MessageFormat.format("Found metadata schema field [{0}] in schema [{1}]",
+                        field1.getFieldName(), field1.getSchemaName()));
+            }
 
             MetadataSchemaField field2 = MetadataSchemaField.newBuilder().setFieldName("field2")
                     .setJsonPath("$.field2").setValueType(FieldValueType.FLOAT)
                     .setSchemaName(metadataSchema.getSchemaName()).build();
-            field2 = client.createMetadataSchemaField(field2);
-            System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
-                    field2.getFieldName(), field2.getSchemaName()));
+            MetadataSchemaField field2Exists = client.getMetadataSchemaField(field2.getSchemaName(),
+                    field2.getFieldName());
+            if (field2Exists == null) {
+                field2 = client.createMetadataSchemaField(field2);
+                System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
+                        field2.getFieldName(), field2.getSchemaName()));
+            } else {
+                field2 = field2Exists;
+                System.out.println(MessageFormat.format("Found metadata schema field [{0}] in schema [{1}]",
+                        field2.getFieldName(), field2.getSchemaName()));
+            }
 
             List<MetadataSchemaField> fields = client.getMetadataSchemaFields(metadataSchema.getSchemaName());
             System.out.println(MessageFormat.format("Found {0} fields for schema {1}", fields.size(),

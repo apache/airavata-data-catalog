@@ -126,6 +126,14 @@ message MetadataSchemaDeleteRequest {
 }
 message MetadataSchemaDeleteResponse {
 }
+message MetadataSchemaFieldGetRequest {
+    UserInfo user_info = 1;
+    string schema_name = 2;
+    string field_name = 3;
+}
+message MetadataSchemaFieldGetResponse {
+    MetadataSchemaField metadata_schema_field = 1;
+}
 message MetadataSchemaFieldCreateRequest {
     UserInfo user_info = 1;
     MetadataSchemaField metadata_schema_field = 2;
@@ -179,6 +187,7 @@ service DataCatalogAPIService {
     rpc getMetadataSchema(MetadataSchemaGetRequest) returns (MetadataSchemaGetResponse){}
     rpc createMetadataSchema(MetadataSchemaCreateRequest) returns (MetadataSchemaCreateResponse){}
     rpc deleteMetadataSchema(MetadataSchemaDeleteRequest) returns (MetadataSchemaDeleteResponse){}
+    rpc getMetadataSchemaField(MetadataSchemaFieldGetRequest) returns (MetadataSchemaFieldGetResponse){}
     rpc createMetadataSchemaField(MetadataSchemaFieldCreateRequest) returns (MetadataSchemaFieldCreateResponse){}
     rpc updateMetadataSchemaField(MetadataSchemaFieldUpdateRequest) returns (MetadataSchemaFieldUpdateResponse){}
     rpc deleteMetadataSchemaField(MetadataSchemaFieldDeleteRequest) returns (MetadataSchemaFieldDeleteResponse){}

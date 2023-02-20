@@ -25,6 +25,8 @@ public interface DataCatalogService {
 
     MetadataSchema createMetadataSchema(MetadataSchema metadataSchema);
 
+    MetadataSchemaField getMetadataSchemaField(String schemaName, String fieldName);
+
     MetadataSchemaField createMetadataSchemaField(MetadataSchemaField metadataSchemaField);
 
     void deleteMetadataSchema(MetadataSchema metadataSchema);

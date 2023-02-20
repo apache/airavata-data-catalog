@@ -26,6 +26,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldDeleteRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldDeleteResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldGetRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldGetResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateRequest;
@@ -125,6 +127,21 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
         responseObserver.onNext(MetadataSchemaCreateResponse.newBuilder().setMetadataSchema(metadataSchema).build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getMetadataSchemaField(MetadataSchemaFieldGetRequest request,
+            StreamObserver<MetadataSchemaFieldGetResponse> responseObserver) {
+        try {
+            MetadataSchemaField metadataSchemaField = dataCatalogService.getMetadataSchemaField(request.getSchemaName(),
+                    request.getFieldName());
+            responseObserver.onNext(
+                    MetadataSchemaFieldGetResponse.newBuilder().setMetadataSchemaField(metadataSchemaField).build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override

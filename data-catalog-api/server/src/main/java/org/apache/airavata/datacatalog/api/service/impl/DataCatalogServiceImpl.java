@@ -116,6 +116,16 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
+    public MetadataSchemaField getMetadataSchemaField(String schemaName, String fieldName) {
+        MetadataSchemaFieldEntity metadataSchemaFieldEntity = metadataSchemaFieldRepository
+                .findByFieldNameAndMetadataSchema_SchemaName(fieldName, schemaName);
+        if (metadataSchemaFieldEntity == null) {
+            throw new EntityNotFoundException("No field found in schema " + schemaName + " with name " + fieldName);
+        }
+        return toMetadataSchemaField(metadataSchemaFieldEntity);
+    }
+
+    @Override
     public MetadataSchemaField createMetadataSchemaField(MetadataSchemaField metadataSchemaField) {
 
         MetadataSchemaFieldEntity metadataSchemaFieldEntity = new MetadataSchemaFieldEntity();
