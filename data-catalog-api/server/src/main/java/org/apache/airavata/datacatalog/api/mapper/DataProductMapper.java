@@ -2,7 +2,9 @@ package org.apache.airavata.datacatalog.api.mapper;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
+import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
+import org.apache.airavata.datacatalog.api.repository.MetadataSchemaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,9 @@ public class DataProductMapper {
 
     @Autowired
     DataProductRepository dataProductRepository;
+
+    @Autowired
+    MetadataSchemaRepository metadataSchemaRepository;
 
     public void mapModelToEntity(DataProduct dataProduct, DataProductEntity dataProductEntity) {
 
@@ -40,6 +45,16 @@ public class DataProductMapper {
                 throw new RuntimeException(e);
             }
         }
+
+        // Synchronize the list of metadata schemas
+        if (dataProductEntity.getMetadataSchemas() != null) {
+            dataProductEntity.getMetadataSchemas().clear();
+        }
+        for (String metadataSchemaName : dataProduct.getMetadataSchemasList()) {
+            // TODO: handle metadata schema not found
+            MetadataSchemaEntity metadataSchema = metadataSchemaRepository.findBySchemaName(metadataSchemaName);
+            dataProductEntity.addMetadataSchema(metadataSchema);
+        }
     }
 
     public void mapEntityToModel(DataProductEntity dataProductEntity, DataProduct.Builder dataProductBuilder) {
@@ -49,6 +64,11 @@ public class DataProductMapper {
                 .setName(dataProductEntity.getName());
         if (dataProductEntity.getParentDataProductEntity() != null) {
             dataProductBuilder.setParentDataProductId(dataProductEntity.getParentDataProductEntity().getExternalId());
+        }
+        if (dataProductEntity.getMetadataSchemas() != null) {
+            for (MetadataSchemaEntity metadataSchema : dataProductEntity.getMetadataSchemas()) {
+                dataProductBuilder.addMetadataSchemas(metadataSchema.getSchemaName());
+            }
         }
     }
 }

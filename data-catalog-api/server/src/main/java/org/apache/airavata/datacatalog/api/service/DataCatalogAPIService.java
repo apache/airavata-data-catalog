@@ -1,25 +1,46 @@
 package org.apache.airavata.datacatalog.api.service;
 
-import java.util.UUID;
+import java.util.List;
 
 import org.apache.airavata.datacatalog.api.DataCatalogAPIServiceGrpc;
 import org.apache.airavata.datacatalog.api.DataProduct;
+import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaRequest;
+import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaResponse;
 import org.apache.airavata.datacatalog.api.DataProductCreateRequest;
 import org.apache.airavata.datacatalog.api.DataProductCreateResponse;
 import org.apache.airavata.datacatalog.api.DataProductDeleteRequest;
 import org.apache.airavata.datacatalog.api.DataProductDeleteResponse;
 import org.apache.airavata.datacatalog.api.DataProductGetRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetResponse;
+import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaRequest;
+import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaResponse;
 import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
-import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
-import org.apache.airavata.datacatalog.api.model.DataProductEntity;
-import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
+import org.apache.airavata.datacatalog.api.MetadataSchema;
+import org.apache.airavata.datacatalog.api.MetadataSchemaCreateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaDeleteRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaDeleteResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaField;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldCreateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldDeleteRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldDeleteResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldGetRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldGetResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
+import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 @GRpcService
@@ -28,28 +49,17 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     private static final Logger logger = LoggerFactory.getLogger(DataCatalogAPIService.class);
 
     @Autowired
-    DataProductRepository dataProductRepository;
-
-    @Autowired
-    DataProductMapper dataProductMapper = new DataProductMapper();
+    DataCatalogService dataCatalogService;
 
     @Override
     public void createDataProduct(DataProductCreateRequest request,
             StreamObserver<DataProductCreateResponse> responseObserver) {
 
-        // TODO: SharingManager.resolveUser
         logger.info("Creating data product {}", request.getDataProduct());
-        DataProductEntity dataProductEntity = new DataProductEntity();
-        dataProductEntity.setExternalId(UUID.randomUUID().toString());
-        dataProductMapper.mapModelToEntity(request.getDataProduct(), dataProductEntity);
-        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
 
-        // TODO: SharingManager.grantPermissionToUser(userInfo, dataProduct,
-        // Permission.OWNER)
+        DataProduct result = dataCatalogService.createDataProduct(request.getDataProduct());
 
-        DataProductCreateResponse.Builder responseBuilder = DataProductCreateResponse.newBuilder();
-        dataProductMapper.mapEntityToModel(savedDataProductEntity, responseBuilder.getDataProductBuilder());
-        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onNext(DataProductCreateResponse.newBuilder().setDataProduct(result).build());
         responseObserver.onCompleted();
     }
 
@@ -58,29 +68,18 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductUpdateResponse> responseObserver) {
 
         // TODO: check that user has access to update data product record
-        // TODO: handle data product does not exist
-        DataProduct dataProduct = request.getDataProduct();
-        DataProductEntity dataProductEntity = dataProductRepository
-                .findByExternalId(dataProduct.getDataProductId());
-        dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
+        DataProduct savedDataProduct = dataCatalogService.updateDataProduct(request.getDataProduct());
 
-        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
-
-        DataProductUpdateResponse.Builder responseBuilder = DataProductUpdateResponse.newBuilder();
-        dataProductMapper.mapEntityToModel(savedDataProductEntity, responseBuilder.getDataProductBuilder());
-        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onNext(DataProductUpdateResponse.newBuilder().setDataProduct(savedDataProduct).build());
         responseObserver.onCompleted();
     }
 
     @Override
     public void getDataProduct(DataProductGetRequest request, StreamObserver<DataProductGetResponse> responseObserver) {
         // TODO: check that user has READ access on data product record
-        // TODO: handle data product does not exist
-        DataProductEntity dataProductEntity = dataProductRepository
-                .findByExternalId(request.getDataProductId());
-        DataProductGetResponse.Builder responseBuilder = DataProductGetResponse.newBuilder();
-        dataProductMapper.mapEntityToModel(dataProductEntity, responseBuilder.getDataProductBuilder());
-        responseObserver.onNext(responseBuilder.build());
+        DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+
+        responseObserver.onNext(DataProductGetResponse.newBuilder().setDataProduct(dataProduct).build());
         responseObserver.onCompleted();
     }
 
@@ -88,9 +87,129 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     public void deleteDataProduct(DataProductDeleteRequest request,
             StreamObserver<DataProductDeleteResponse> responseObserver) {
         // TODO: check that user has WRITE access on data product record
-        dataProductRepository.deleteByExternalId(request.getDataProductId());
-        DataProductDeleteResponse.Builder responseBuilder = DataProductDeleteResponse.newBuilder();
-        responseObserver.onNext(responseBuilder.build());
+        dataCatalogService.deleteDataProduct(request.getDataProductId());
+
+        responseObserver.onNext(DataProductDeleteResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest request,
+            StreamObserver<DataProductAddToMetadataSchemaResponse> responseObserver) {
+        String dataProductId = request.getDataProductId();
+        String schemaName = request.getSchemaName();
+        DataProduct dataProduct = dataCatalogService.addDataProductToMetadataSchema(dataProductId, schemaName);
+
+        responseObserver
+                .onNext(DataProductAddToMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getMetadataSchema(MetadataSchemaGetRequest request,
+            StreamObserver<MetadataSchemaGetResponse> responseObserver) {
+        try {
+            MetadataSchema metadataSchema = dataCatalogService.getMetadataSchema(request.getSchemaName());
+
+            responseObserver.onNext(MetadataSchemaGetResponse.newBuilder().setMetadataSchema(metadataSchema).build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.asException());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void createMetadataSchema(MetadataSchemaCreateRequest request,
+            StreamObserver<MetadataSchemaCreateResponse> responseObserver) {
+
+        MetadataSchema metadataSchema = dataCatalogService.createMetadataSchema(request.getMetadataSchema());
+
+        responseObserver.onNext(MetadataSchemaCreateResponse.newBuilder().setMetadataSchema(metadataSchema).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getMetadataSchemaField(MetadataSchemaFieldGetRequest request,
+            StreamObserver<MetadataSchemaFieldGetResponse> responseObserver) {
+        try {
+            MetadataSchemaField metadataSchemaField = dataCatalogService.getMetadataSchemaField(request.getSchemaName(),
+                    request.getFieldName());
+            responseObserver.onNext(
+                    MetadataSchemaFieldGetResponse.newBuilder().setMetadataSchemaField(metadataSchemaField).build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.asException());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void createMetadataSchemaField(MetadataSchemaFieldCreateRequest request,
+            StreamObserver<MetadataSchemaFieldCreateResponse> responseObserver) {
+
+        MetadataSchemaField metadataSchemaField = dataCatalogService
+                .createMetadataSchemaField(request.getMetadataSchemaField());
+
+        responseObserver.onNext(
+                MetadataSchemaFieldCreateResponse.newBuilder().setMetadataSchemaField(metadataSchemaField).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteMetadataSchema(MetadataSchemaDeleteRequest request,
+            StreamObserver<MetadataSchemaDeleteResponse> responseObserver) {
+        // TODO: check that user has write access on metadata schema
+        dataCatalogService.deleteMetadataSchema(request.getMetadataSchema());
+
+        responseObserver.onNext(MetadataSchemaDeleteResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteMetadataSchemaField(MetadataSchemaFieldDeleteRequest request,
+            StreamObserver<MetadataSchemaFieldDeleteResponse> responseObserver) {
+        // TODO: check that user has write access on metadata schema field
+        dataCatalogService.deleteMetadataSchemaField(request.getMetadataSchemaField());
+
+        responseObserver.onNext(MetadataSchemaFieldDeleteResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getMetadataSchemaFields(MetadataSchemaFieldListRequest request,
+            StreamObserver<MetadataSchemaFieldListResponse> responseObserver) {
+
+        List<MetadataSchemaField> fields = dataCatalogService.getMetadataSchemaFields(request.getSchemaName());
+
+        responseObserver
+                .onNext(MetadataSchemaFieldListResponse.newBuilder().addAllMetadataSchemaFields(fields).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest request,
+            StreamObserver<DataProductRemoveFromMetadataSchemaResponse> responseObserver) {
+
+        String dataProductId = request.getDataProductId();
+        String schemaName = request.getSchemaName();
+        DataProduct dataProduct = dataCatalogService.removeDataProductFromMetadataSchema(dataProductId, schemaName);
+
+        responseObserver
+                .onNext(DataProductRemoveFromMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void updateMetadataSchemaField(MetadataSchemaFieldUpdateRequest request,
+            StreamObserver<MetadataSchemaFieldUpdateResponse> responseObserver) {
+
+        // TODO: check that user has write access on metadata schema field
+        MetadataSchemaField metadataSchemaField = dataCatalogService
+                .updateMetadataSchemaField(request.getMetadataSchemaField());
+
+        responseObserver.onNext(
+                MetadataSchemaFieldUpdateResponse.newBuilder().setMetadataSchemaField(metadataSchemaField).build());
         responseObserver.onCompleted();
     }
 }

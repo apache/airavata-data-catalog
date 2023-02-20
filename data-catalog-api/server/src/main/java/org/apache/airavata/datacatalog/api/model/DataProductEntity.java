@@ -1,5 +1,8 @@
 package org.apache.airavata.datacatalog.api.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hibernate.annotations.Type;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +15,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -42,6 +47,10 @@ public class DataProductEntity {
     @Type(JsonType.class)
     @Column(name = "metadata", columnDefinition = "jsonb")
     private JsonNode metadata;
+
+    @ManyToMany
+    @JoinTable(name = "data_product_metadata_schema", joinColumns = @JoinColumn(name = "data_product_id"), inverseJoinColumns = @JoinColumn(name = "metadata_schema_id"))
+    private Set<MetadataSchemaEntity> metadataSchemas = new HashSet<>();
 
     // TODO: ManyToOne mapping to owner: UserEntity
     public Long getDataProductId() {
@@ -82,6 +91,22 @@ public class DataProductEntity {
 
     public void setMetadata(JsonNode metadata) {
         this.metadata = metadata;
+    }
+
+    public Set<MetadataSchemaEntity> getMetadataSchemas() {
+        return metadataSchemas;
+    }
+
+    public void setMetadataSchemas(Set<MetadataSchemaEntity> metadataSchemas) {
+        this.metadataSchemas = metadataSchemas;
+    }
+
+    public void addMetadataSchema(MetadataSchemaEntity metadataSchema) {
+        this.metadataSchemas.add(metadataSchema);
+    }
+
+    public void removeMetadataSchema(MetadataSchemaEntity metadataSchema) {
+        this.metadataSchemas.remove(metadataSchema);
     }
 
     @Override
