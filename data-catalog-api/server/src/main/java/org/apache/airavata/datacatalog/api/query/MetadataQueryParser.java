@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 
 import javax.sql.DataSource;
 
@@ -14,6 +16,7 @@ import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.schema.impl.ViewTable;
 import org.apache.calcite.sql.SqlExplainFormat;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlNode;
@@ -69,8 +72,11 @@ public class MetadataQueryParser {
         // JdbcSchema.create(rootSchema, POSTGRESQL_SCHEMA, postgresDataSource, null,
         // null));
         // rootSchema.add("data_product", jdbcSchema.getTable("data_product"));
-        JdbcSchema dcSchema = JdbcSchema.create(rootSchema, "data_catalog", postgresDataSource, null, null);
-        rootSchema.add("data_catalog", dcSchema);
+        SchemaPlus dcSchema = rootSchema.add("data_catalog",
+                JdbcSchema.create(rootSchema, "data_catalog", postgresDataSource, null, null));
+        dcSchema.add("smilesdb", ViewTable.viewMacro(dcSchema,
+                "select data_product_id, parent_data_product_id, external_id, metadata, name from \"data_catalog\".\"data_product\" where jsonb_path_exists(\"metadata\", '$.foo == \"bar\"')",
+                Collections.emptyList(), Arrays.asList("data_catalog", "smilesdb"), false));
 
         System.out.println("subschemas: " + rootSchema.getSubSchemaNames());
 
@@ -81,8 +87,11 @@ public class MetadataQueryParser {
                 .build();
         // String query = "SELECT * FROM public.\"data_product\" WHERE
         // \"data_product_id\" = 1";
-        String query = "SELECT * FROM data_catalog.data_product WHERE data_product_id = 1";
+        // String query = "SELECT * FROM data_catalog.data_product WHERE data_product_id
+        // = 1";
         // String query = "SELECT * FROM data_product WHERE data_product_id = 1";
+        // "smilesdb" view macro
+        String query = "SELECT * FROM data_catalog.smilesdb WHERE data_product_id = 1";
         Planner planner = Frameworks.getPlanner(config);
         SqlNode parse = planner.parse(query);
 
