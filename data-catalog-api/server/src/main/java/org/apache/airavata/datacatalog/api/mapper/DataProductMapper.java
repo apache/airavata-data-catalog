@@ -70,5 +70,13 @@ public class DataProductMapper {
                 dataProductBuilder.addMetadataSchemas(metadataSchema.getSchemaName());
             }
         }
+        if (dataProductEntity.getMetadata() != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                dataProductBuilder.setMetadata(mapper.writeValueAsString(dataProductEntity.getMetadata()));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
