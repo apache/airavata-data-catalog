@@ -65,8 +65,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     @Override
     public DataProduct updateDataProduct(DataProduct dataProduct) {
 
-        DataProductEntity dataProductEntity = dataProductRepository
-                .findByExternalId(dataProduct.getDataProductId());
+        DataProductEntity dataProductEntity = findDataProductEntity(dataProduct.getDataProductId());
         dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
 
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
@@ -76,8 +75,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
 
     @Override
     public DataProduct getDataProduct(String dataProductId) {
-        // TODO: handle data product does not exist
-        DataProductEntity dataProductEntity = dataProductRepository.findByExternalId(dataProductId);
+        DataProductEntity dataProductEntity = findDataProductEntity(dataProductId);
         return toDataProduct(dataProductEntity);
     }
 
@@ -88,8 +86,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
 
     @Override
     public DataProduct addDataProductToMetadataSchema(String dataProductId, String schemaName) {
-        // TODO: handle data product not found
-        DataProductEntity dataProduct = dataProductRepository.findByExternalId(dataProductId);
+        DataProductEntity dataProduct = findDataProductEntity(dataProductId);
         // TODO: handle metadata schema not found
         MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
         dataProduct.addMetadataSchema(metadataSchemaEntity);
@@ -172,8 +169,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     @Override
     public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
 
-        // TODO: handle data product not found
-        DataProductEntity dataProduct = dataProductRepository.findByExternalId(dataProductId);
+        DataProductEntity dataProduct = findDataProductEntity(dataProductId);
         // TODO: handle metadata schema not found
         MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
         dataProduct.removeMetadataSchema(metadataSchemaEntity);
@@ -210,6 +206,12 @@ public class DataCatalogServiceImpl implements DataCatalogService {
         MetadataSchemaField.Builder builder = MetadataSchemaField.newBuilder();
         metadataSchemaFieldMapper.mapEntityToModel(metadataSchemaFieldEntity, builder);
         return builder.build();
+    }
+
+    private DataProductEntity findDataProductEntity(String dataProductId) {
+        return dataProductRepository
+                .findByExternalId(dataProductId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find a data product with the ID: " + dataProductId));
     }
 
 }
