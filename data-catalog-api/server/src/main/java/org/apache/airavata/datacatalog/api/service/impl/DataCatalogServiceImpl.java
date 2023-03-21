@@ -9,12 +9,16 @@ import org.apache.airavata.datacatalog.api.MetadataSchema;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
 import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaFieldMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaMapper;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
+import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryExecutor;
+import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaFieldRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaRepository;
@@ -46,6 +50,9 @@ public class DataCatalogServiceImpl implements DataCatalogService {
 
     @Autowired
     MetadataSchemaFieldMapper metadataSchemaFieldMapper;
+
+    @Autowired
+    MetadataSchemaQueryExecutor metadataSchemaQueryExecutor;
 
     @Override
     public DataProduct createDataProduct(DataProduct dataProduct) {
@@ -92,6 +99,23 @@ public class DataCatalogServiceImpl implements DataCatalogService {
         dataProduct.addMetadataSchema(metadataSchemaEntity);
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProduct);
         return toDataProduct(savedDataProductEntity);
+    }
+
+    @Override
+    public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
+
+        DataProductEntity dataProduct = findDataProductEntity(dataProductId);
+        // TODO: handle metadata schema not found
+        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
+        dataProduct.removeMetadataSchema(metadataSchemaEntity);
+        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProduct);
+        return toDataProduct(savedDataProductEntity);
+    }
+
+    @Override
+    public MetadataSchemaQueryResult searchDataProducts(String sql)
+            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
+        return metadataSchemaQueryExecutor.execute(sql);
     }
 
     @Override
@@ -167,17 +191,6 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
-    public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
-
-        DataProductEntity dataProduct = findDataProductEntity(dataProductId);
-        // TODO: handle metadata schema not found
-        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
-        dataProduct.removeMetadataSchema(metadataSchemaEntity);
-        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProduct);
-        return toDataProduct(savedDataProductEntity);
-    }
-
-    @Override
     public MetadataSchemaField updateMetadataSchemaField(MetadataSchemaField metadataSchemaField) {
 
         // TODO: handle metadata schema field not found
@@ -211,7 +224,8 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     private DataProductEntity findDataProductEntity(String dataProductId) {
         return dataProductRepository
                 .findByExternalId(dataProductId)
-                .orElseThrow(() -> new EntityNotFoundException("Could not find a data product with the ID: " + dataProductId));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Could not find a data product with the ID: " + dataProductId));
     }
 
 }
