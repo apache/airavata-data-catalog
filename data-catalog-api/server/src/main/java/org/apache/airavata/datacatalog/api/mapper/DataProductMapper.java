@@ -1,6 +1,7 @@
 package org.apache.airavata.datacatalog.api.mapper;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
+import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
@@ -30,10 +31,11 @@ public class DataProductMapper {
 
         dataProductEntity.setName(dataProduct.getName());
 
-        if (dataProduct.hasParentDataProductId()) {
-            // TODO: handle parent data product not found
+        if (dataProduct.hasParentDataProductId() && !dataProduct.getParentDataProductId().isEmpty()) {
             DataProductEntity parentDataProductEntity = dataProductRepository
-                    .findByExternalId(dataProduct.getParentDataProductId());
+                    .findByExternalId(dataProduct.getParentDataProductId())
+                    .orElseThrow(() -> new EntityNotFoundException("Could not find the parent data product with the ID: "
+                            + dataProduct.getParentDataProductId()));
             dataProductEntity.setParentDataProductEntity(parentDataProductEntity);
         }
         if (dataProduct.hasMetadata()) {
@@ -68,6 +70,14 @@ public class DataProductMapper {
         if (dataProductEntity.getMetadataSchemas() != null) {
             for (MetadataSchemaEntity metadataSchema : dataProductEntity.getMetadataSchemas()) {
                 dataProductBuilder.addMetadataSchemas(metadataSchema.getSchemaName());
+            }
+        }
+        if (dataProductEntity.getMetadata() != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                dataProductBuilder.setMetadata(mapper.writeValueAsString(dataProductEntity.getMetadata()));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
         }
     }

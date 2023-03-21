@@ -73,19 +73,29 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductUpdateResponse> responseObserver) {
 
         // TODO: check that user has access to update data product record
-        DataProduct savedDataProduct = dataCatalogService.updateDataProduct(request.getDataProduct());
+        try {
+            DataProduct savedDataProduct = dataCatalogService.updateDataProduct(request.getDataProduct());
 
-        responseObserver.onNext(DataProductUpdateResponse.newBuilder().setDataProduct(savedDataProduct).build());
-        responseObserver.onCompleted();
+            responseObserver.onNext(DataProductUpdateResponse.newBuilder().setDataProduct(savedDataProduct).build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
     public void getDataProduct(DataProductGetRequest request, StreamObserver<DataProductGetResponse> responseObserver) {
         // TODO: check that user has READ access on data product record
-        DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+        try {
+            DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
 
-        responseObserver.onNext(DataProductGetResponse.newBuilder().setDataProduct(dataProduct).build());
-        responseObserver.onCompleted();
+            responseObserver.onNext(DataProductGetResponse.newBuilder().setDataProduct(dataProduct).build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
@@ -101,13 +111,19 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     @Override
     public void addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest request,
             StreamObserver<DataProductAddToMetadataSchemaResponse> responseObserver) {
+
         String dataProductId = request.getDataProductId();
         String schemaName = request.getSchemaName();
-        DataProduct dataProduct = dataCatalogService.addDataProductToMetadataSchema(dataProductId, schemaName);
+        try {
+            DataProduct dataProduct = dataCatalogService.addDataProductToMetadataSchema(dataProductId, schemaName);
 
-        responseObserver
-                .onNext(DataProductAddToMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
-        responseObserver.onCompleted();
+            responseObserver
+                    .onNext(DataProductAddToMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
@@ -116,11 +132,17 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
         String dataProductId = request.getDataProductId();
         String schemaName = request.getSchemaName();
-        DataProduct dataProduct = dataCatalogService.removeDataProductFromMetadataSchema(dataProductId, schemaName);
+        try {
+            DataProduct dataProduct = dataCatalogService.removeDataProductFromMetadataSchema(dataProductId, schemaName);
 
-        responseObserver
-                .onNext(DataProductRemoveFromMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
-        responseObserver.onCompleted();
+            responseObserver
+                    .onNext(DataProductRemoveFromMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct)
+                            .build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
