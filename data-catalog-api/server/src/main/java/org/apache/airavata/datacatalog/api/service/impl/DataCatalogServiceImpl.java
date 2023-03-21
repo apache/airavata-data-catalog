@@ -15,6 +15,8 @@ import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaMapper;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
+import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryExecutor;
+import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaFieldRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaRepository;
@@ -46,6 +48,9 @@ public class DataCatalogServiceImpl implements DataCatalogService {
 
     @Autowired
     MetadataSchemaFieldMapper metadataSchemaFieldMapper;
+
+    @Autowired
+    MetadataSchemaQueryExecutor metadataSchemaQueryExecutor;
 
     @Override
     public DataProduct createDataProduct(DataProduct dataProduct) {
@@ -95,6 +100,23 @@ public class DataCatalogServiceImpl implements DataCatalogService {
         dataProduct.addMetadataSchema(metadataSchemaEntity);
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProduct);
         return toDataProduct(savedDataProductEntity);
+    }
+
+    @Override
+    public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
+
+        // TODO: handle data product not found
+        DataProductEntity dataProduct = dataProductRepository.findByExternalId(dataProductId);
+        // TODO: handle metadata schema not found
+        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
+        dataProduct.removeMetadataSchema(metadataSchemaEntity);
+        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProduct);
+        return toDataProduct(savedDataProductEntity);
+    }
+
+    @Override
+    public MetadataSchemaQueryResult searchDataProducts(String sql) {
+        return metadataSchemaQueryExecutor.execute(sql);
     }
 
     @Override
@@ -167,18 +189,6 @@ public class DataCatalogServiceImpl implements DataCatalogService {
             fields.add(toMetadataSchemaField(metadataSchemaFieldEntity));
         }
         return fields;
-    }
-
-    @Override
-    public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
-
-        // TODO: handle data product not found
-        DataProductEntity dataProduct = dataProductRepository.findByExternalId(dataProductId);
-        // TODO: handle metadata schema not found
-        MetadataSchemaEntity metadataSchemaEntity = metadataSchemaRepository.findBySchemaName(schemaName);
-        dataProduct.removeMetadataSchema(metadataSchemaEntity);
-        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProduct);
-        return toDataProduct(savedDataProductEntity);
     }
 
     @Override

@@ -16,6 +16,8 @@ import org.apache.airavata.datacatalog.api.DataProductGetRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetResponse;
 import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaRequest;
 import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaResponse;
+import org.apache.airavata.datacatalog.api.DataProductSearchRequest;
+import org.apache.airavata.datacatalog.api.DataProductSearchResponse;
 import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
 import org.apache.airavata.datacatalog.api.FieldValueType;
@@ -133,6 +135,12 @@ public class DataCatalogAPIClient {
         return response.getDataProduct();
     }
 
+    public List<DataProduct> searchDataProducts(String sql) {
+        DataProductSearchRequest request = DataProductSearchRequest.newBuilder().setSql(sql).build();
+        DataProductSearchResponse response = blockingStub.searchDataProducts(request);
+        return response.getDataProductsList();
+    }
+
     public static void main(String[] args) throws InterruptedException {
         String target = "localhost:6565";
 
@@ -211,6 +219,21 @@ public class DataCatalogAPIClient {
                         field2.getFieldName(), field2.getSchemaName()));
             }
 
+            MetadataSchemaField field3 = MetadataSchemaField.newBuilder().setFieldName("field3")
+                    .setJsonPath("$.field3").setValueType(FieldValueType.STRING)
+                    .setSchemaName(metadataSchema.getSchemaName()).build();
+            MetadataSchemaField field3Exists = client.getMetadataSchemaField(field3.getSchemaName(),
+                    field3.getFieldName());
+            if (field3Exists == null) {
+                field3 = client.createMetadataSchemaField(field3);
+                System.out.println(MessageFormat.format("Created metadata schema field [{0}] in schema [{1}]",
+                        field3.getFieldName(), field3.getSchemaName()));
+            } else {
+                field3 = field3Exists;
+                System.out.println(MessageFormat.format("Found metadata schema field [{0}] in schema [{1}]",
+                        field3.getFieldName(), field3.getSchemaName()));
+            }
+
             List<MetadataSchemaField> fields = client.getMetadataSchemaFields(metadataSchema.getSchemaName());
             System.out.println(MessageFormat.format("Found {0} fields for schema {1}", fields.size(),
                     metadataSchema.getSchemaName()));
@@ -230,7 +253,7 @@ public class DataCatalogAPIClient {
             // Create data product that belongs to my_schema schema
             DataProduct dataProduct3 = DataProduct.newBuilder()
                     .setName("testing 3")
-                    .setMetadata("{\"foo\": \"bar\"}")
+                    .setMetadata("{\"field3\": \"bar\", \"field1\": 10}")
                     .addMetadataSchemas("my_schema")
                     .build();
             DataProduct result3 = client.createDataProduct(dataProduct3);
@@ -238,6 +261,28 @@ public class DataCatalogAPIClient {
                     MessageFormat.format("Created third data product [{0}], supporting schemas [{1}]",
                             result3.getDataProductId(), result3.getMetadataSchemasList()));
 
+            // Create another data product that belongs to my_schema schema, but with
+            // different "field3" and "field1" values
+            DataProduct dataProduct4 = DataProduct.newBuilder()
+                    .setName("testing 4")
+                    .setMetadata("{\"field3\": \"baz\", \"field1\": 2}")
+                    .addMetadataSchemas("my_schema")
+                    .build();
+            client.createDataProduct(dataProduct4);
+
+            List<DataProduct> searchResults = client.searchDataProducts("""
+                    select * from my_schema where field3 = 'bar'
+                     """);
+            System.out.println(searchResults);
+
+            searchResults = client.searchDataProducts("""
+                    select * from my_schema where (field1 < 5 or field3 = 'bar') and field1 > 0
+                    and external_id = 'fff'
+                    """);
+            // searchResults = client.searchDataProducts("""
+            // select * from my_schema where not (field1 < 5 or field3 = 'bar')
+            // """);
+            System.out.println(searchResults);
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         }

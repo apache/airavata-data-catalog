@@ -105,6 +105,30 @@ message DataProductDeleteRequest {
 }
 message DataProductDeleteResponse {
 }
+message DataProductAddToMetadataSchemaRequest {
+    UserInfo user_info = 1;
+    string data_product_id = 2;
+    string schema_name = 3;
+}
+message DataProductAddToMetadataSchemaResponse {
+    DataProduct data_product = 1;
+}
+message DataProductRemoveFromMetadataSchemaRequest {
+    UserInfo user_info = 1;
+    string data_product_id = 2;
+    string schema_name = 3;
+}
+message DataProductRemoveFromMetadataSchemaResponse {
+    DataProduct data_product = 1;
+}
+message DataProductSearchRequest {
+    UserInfo user_info = 1;
+    string sql = 2;
+}
+message DataProductSearchResponse {
+    repeated DataProduct data_products = 1;
+}
+
 
 message MetadataSchemaGetRequest {
     UserInfo user_info = 1;
@@ -161,23 +185,6 @@ message MetadataSchemaFieldListRequest {
 message MetadataSchemaFieldListResponse {
     repeated MetadataSchemaField metadata_schema_fields = 1;
 }
-message DataProductAddToMetadataSchemaRequest {
-    UserInfo user_info = 1;
-    string data_product_id = 2;
-    string schema_name = 3;
-}
-message DataProductAddToMetadataSchemaResponse {
-    DataProduct data_product = 1;
-}
-message DataProductRemoveFromMetadataSchemaRequest {
-    UserInfo user_info = 1;
-    string data_product_id = 2;
-    string schema_name = 3;
-}
-message DataProductRemoveFromMetadataSchemaResponse {
-    DataProduct data_product = 1;
-}
-
 
 service DataCatalogAPIService {
     rpc createDataProduct(DataProductCreateRequest) returns (DataProductCreateResponse){}
@@ -194,4 +201,5 @@ service DataCatalogAPIService {
     rpc getMetadataSchemaFields(MetadataSchemaFieldListRequest) returns (MetadataSchemaFieldListResponse){}
     rpc addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest) returns (DataProductAddToMetadataSchemaResponse){}
     rpc removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest) returns (DataProductRemoveFromMetadataSchemaResponse){}
+    rpc searchDataProducts(DataProductSearchRequest) returns (DataProductSearchResponse){}
 }

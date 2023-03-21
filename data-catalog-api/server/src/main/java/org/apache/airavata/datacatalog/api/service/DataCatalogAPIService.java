@@ -14,6 +14,8 @@ import org.apache.airavata.datacatalog.api.DataProductGetRequest;
 import org.apache.airavata.datacatalog.api.DataProductGetResponse;
 import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaRequest;
 import org.apache.airavata.datacatalog.api.DataProductRemoveFromMetadataSchemaResponse;
+import org.apache.airavata.datacatalog.api.DataProductSearchRequest;
+import org.apache.airavata.datacatalog.api.DataProductSearchResponse;
 import org.apache.airavata.datacatalog.api.DataProductUpdateRequest;
 import org.apache.airavata.datacatalog.api.DataProductUpdateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchema;
@@ -35,6 +37,7 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
+import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +105,29 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
         responseObserver
                 .onNext(DataProductAddToMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest request,
+            StreamObserver<DataProductRemoveFromMetadataSchemaResponse> responseObserver) {
+
+        String dataProductId = request.getDataProductId();
+        String schemaName = request.getSchemaName();
+        DataProduct dataProduct = dataCatalogService.removeDataProductFromMetadataSchema(dataProductId, schemaName);
+
+        responseObserver
+                .onNext(DataProductRemoveFromMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void searchDataProducts(DataProductSearchRequest request,
+            StreamObserver<DataProductSearchResponse> responseObserver) {
+
+        MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getSql());
+        List<DataProduct> dataProducts = searchResult.dataProducts();
+        responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
         responseObserver.onCompleted();
     }
 
@@ -184,19 +210,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
         responseObserver
                 .onNext(MetadataSchemaFieldListResponse.newBuilder().addAllMetadataSchemaFields(fields).build());
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest request,
-            StreamObserver<DataProductRemoveFromMetadataSchemaResponse> responseObserver) {
-
-        String dataProductId = request.getDataProductId();
-        String schemaName = request.getSchemaName();
-        DataProduct dataProduct = dataCatalogService.removeDataProductFromMetadataSchema(dataProductId, schemaName);
-
-        responseObserver
-                .onNext(DataProductRemoveFromMetadataSchemaResponse.newBuilder().setDataProduct(dataProduct).build());
         responseObserver.onCompleted();
     }
 
