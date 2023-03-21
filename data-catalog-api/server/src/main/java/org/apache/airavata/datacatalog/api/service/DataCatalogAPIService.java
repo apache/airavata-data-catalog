@@ -37,6 +37,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
@@ -125,10 +127,20 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     public void searchDataProducts(DataProductSearchRequest request,
             StreamObserver<DataProductSearchResponse> responseObserver) {
 
-        MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getSql());
-        List<DataProduct> dataProducts = searchResult.dataProducts();
-        responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
-        responseObserver.onCompleted();
+        try {
+            MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getSql());
+            List<DataProduct> dataProducts = searchResult.dataProducts();
+            responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
+            responseObserver.onCompleted();
+        } catch (MetadataSchemaSqlParseException e) {
+            responseObserver
+                    .onError(Status.INVALID_ARGUMENT.withDescription("Failed to parse SQL query.").asException());
+            responseObserver.onCompleted();
+        } catch (MetadataSchemaSqlValidateException e) {
+            responseObserver
+                    .onError(Status.INVALID_ARGUMENT.withDescription("Failed to validate SQL query.").asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override

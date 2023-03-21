@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.FieldValueType;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
 import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
@@ -66,7 +68,8 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
     DataProductMapper dataProductMapper;
 
     @Override
-    public MetadataSchemaQueryResult execute(String sql) {
+    public MetadataSchemaQueryResult execute(String sql)
+            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
 
         // Create a schema that contains the data_product table and all of the metadata
         // schemas
@@ -174,21 +177,19 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
         return validator;
     }
 
-    SqlNode parse(Planner planner, String sql) {
+    SqlNode parse(Planner planner, String sql) throws MetadataSchemaSqlParseException {
         try {
             return planner.parse(sql);
         } catch (SqlParseException e) {
-            // TODO: convert to a checked exception and add to interface
-            throw new RuntimeException(e);
+            throw new MetadataSchemaSqlParseException(e);
         }
     }
 
-    SqlNode validate(SqlValidator validator, SqlNode sqlNode) {
+    SqlNode validate(SqlValidator validator, SqlNode sqlNode) throws MetadataSchemaSqlValidateException {
         try {
             return validator.validate(sqlNode);
         } catch (CalciteContextException e) {
-            // TODO: convert to a checked exception and add to interface
-            throw new RuntimeException(e);
+            throw new MetadataSchemaSqlValidateException(e);
         }
     }
 

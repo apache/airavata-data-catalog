@@ -5,6 +5,8 @@ import java.util.List;
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.MetadataSchema;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 
 /**
@@ -40,5 +42,6 @@ public interface DataCatalogService {
 
     MetadataSchemaField updateMetadataSchemaField(MetadataSchemaField metadataSchemaField);
 
-    MetadataSchemaQueryResult searchDataProducts(String sql);
+    MetadataSchemaQueryResult searchDataProducts(String sql)
+            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException;
 }

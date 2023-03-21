@@ -9,6 +9,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchema;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
+import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
 import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaFieldMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaMapper;
@@ -115,7 +117,8 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
-    public MetadataSchemaQueryResult searchDataProducts(String sql) {
+    public MetadataSchemaQueryResult searchDataProducts(String sql)
+            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
         return metadataSchemaQueryExecutor.execute(sql);
     }
 
