@@ -1,0 +1,195 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+
+//   http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.apache.airavata.replicacatalog.catalog.stubs";
+
+message UserInfo {
+  /*
+   * This is an external identifier for the user, which identifies the user in
+   * whatever user management scheme data catalog is integrated with.
+   */
+  string user_id = 1;
+  /*
+   * This is an (optional) external identifier for the tenant, which
+   * identifies the tenant in whatever tenant management scheme data catalog
+   * is integrated with.
+   */
+  string tenant_id = 2;
+}
+
+message GroupInfo {
+  /*
+   * This is an external identifier for the group, which identifies the group in
+   * whatever group management scheme data catalog is integrated with.
+   */
+  string group_id = 1;
+  /*
+   * This is an (optional) external identifier for the tenant, which
+   * identifies the tenant in whatever tenant management scheme data catalog
+   * is integrated with.
+   */
+  string tenant_id = 2;
+}
+
+enum Permission {
+  OWNER = 0;
+  READ = 1;
+  READ_METADATA = 2;
+  WRITE = 3;
+  WRITE_METADATA = 4;
+  MANAGE_SHARING = 5;
+}
+
+enum StorageType {
+  LOCAL = 0;
+  S3 = 1;
+  GCS = 2;
+  AZURE = 3;
+
+}
+
+enum DataProductType {
+  FILE = 0;
+  COLLECTION = 1;
+}
+
+// Entity which used to model a replica entry
+message DataReplicaLocation {
+  string data_replica_id = 1;             // Unique replica id
+  string data_product_id = 2;
+  string storage_resource_id = 3;         // Replica storage id (TO link the storage entry)
+  string replica_name = 4;                // Replica user friendly name
+  string replica_description = 5;         // Replica description
+  int64 creation_time = 6;                // Replica creation date and time
+  int64 last_modified_time = 7;           // Last modified time of replica
+  int64 valid_until_time = 8;             // Validity time of the replica
+  StorageType storage_type = 9;          // Storage type of the replica
+  map<string, string> metadata = 10;      // Replica's metadata information
+}
+
+message DataReplicaCreateRequest {
+  DataReplicaLocation data_replica = 1;
+}
+message DataReplicaCreateResponse{
+  DataReplicaLocation data_replica = 1;
+}
+
+message DataReplicaGroupEntryCreateRequest {
+  ReplicaGroupEntry data_replica_group = 1;
+}
+message DataReplicaGroupEntryCreateResponse{
+  ReplicaGroupEntry data_replica_group = 1;
+}
+
+
+message DataReplicaUpdateRequest {
+  DataReplicaLocation data_replica = 1;
+}
+message DataReplicaUpdateResponse{
+  DataReplicaLocation data_replica = 1;
+}
+message DataReplicaGetRequest {
+  string data_replica_id = 1;
+}
+message DataReplicaGetResponse {
+  DataReplicaLocation data_replica = 1;
+}
+message DataReplicaDeleteRequest {
+  string data_replica_id = 1;
+}
+message DataReplicaDeleteResponse {
+}
+
+message AllDataReplicaGetRequest {
+  string data_product_id = 1;
+  int32 page_number = 2;
+  int32 page_size = 3;
+}
+
+message AllDataReplicaGetResponse {
+  string data_product_id = 1;
+  repeated ReplicaGroupEntry replica_list = 2;
+}
+
+message ReplicaGroupEntry {
+  string replica_group_id = 1;
+  string data_replica_id = 2;
+  repeated ReplicaGroupEntry directories = 3;
+  repeated DataReplicaLocation files = 4;
+}
+
+message ReplicaListEntry {
+  string data_replica_id = 1;
+  string replica_name = 2;
+  StorageType storage_type = 3;
+}
+
+message AllDataReplicaDeleteRequest {
+  string data_product_id = 1;
+}
+
+message AllDataReplicaDeleteResponse{
+  int32 replica_location_count = 1;
+}
+
+
+// Entity which used to model a DataProduct entry
+message DataProduct{
+  string product_uri = 1;                 // Unique id
+  string parent_product_uri = 2;          //
+  string product_name = 3;                // Product user friendly name
+  string product_description = 4;         // Product description
+  int64 creation_time = 5;                // Product creation date and time
+  int64 last_modified_time = 6;           // Last modified time of replica
+  int64 valid_until_time = 7;             // Validity time of the replica
+  DataProductType data_product_type = 8;          // Product type of the DataProduct
+  map<string, string> metadata = 9;               // Product metadata information
+  repeated DataReplicaLocation replica_locations = 10; //Link to replicas
+
+}
+
+message DataProductCreateRequest {
+  DataProduct data_product = 1;
+}
+message DataProductCreateResponse{
+  DataProduct data_product = 1;
+}
+
+message DataProductUpdateRequest {
+  DataProduct data_product = 1;
+}
+message DataProductUpdateResponse{
+  DataProduct data_product = 1;
+}
+
+message DataProductGetRequest {
+  string data_product_uri = 1;
+}
+message DataProductGetResponse {
+  DataProduct data_product = 1;
+}
+
+message DataProductDeleteRequest {
+  string data_product_uri = 1;
+}
+message DataProductDeleteResponse {
+}
+
+
