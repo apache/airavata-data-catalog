@@ -28,5 +28,6 @@ import java.util.Optional;
 public interface GenericResourceRepository extends CrudRepository<GenericResourceEntity, String> {
     Optional<GenericResourceEntity> findByResourceId(String resourceId);
     List<GenericResourceEntity> findByStorageId(String storageId);
+    List<GenericResourceEntity> findByReplicaId(String replicaId);
     void deleteByStorageIdAndStorageType(String storageId, GenericResourceEntity.StorageType storageType);
 }

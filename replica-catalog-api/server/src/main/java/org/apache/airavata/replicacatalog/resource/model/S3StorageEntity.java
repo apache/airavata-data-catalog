@@ -28,7 +28,7 @@ import org.hibernate.annotations.GenericGenerator;
 public class S3StorageEntity {
 
     @Id
-    @Column(name = "S3_STORAGE_ID")
+    @Column(name = "STORAGE_ID")
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String storageId;

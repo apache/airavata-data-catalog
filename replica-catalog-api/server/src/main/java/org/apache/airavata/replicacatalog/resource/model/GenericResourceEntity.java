@@ -48,6 +48,9 @@ public class GenericResourceEntity {
     @Column(name = "RESOURCE_TYPE")
     private ResourceType resourceType;
 
+    @Column(name = "REPLICA_ID")
+    private String replicaId;
+
     @Column(name = "STORAGE_ID")
     private String storageId;
 
@@ -76,6 +79,14 @@ public class GenericResourceEntity {
 
     public void setResourceType(ResourceType resourceType) {
         this.resourceType = resourceType;
+    }
+
+    public String getReplicaId() {
+        return replicaId;
+    }
+
+    public void setReplicaId(String replicaId) {
+        this.replicaId = replicaId;
     }
 
     public String getStorageId() {

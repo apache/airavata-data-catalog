@@ -31,7 +31,7 @@ public interface IResourceService {
     public void destroy();
     public SecretForStorage getSecretForStorage(SecretForStorageGetRequest request) throws Exception;
 
-    public SecretForStorage registerSecretForStorage(SecretForStorage request) throws Exception;
+    public SecretForStorage registerSecretForStorage(SecretForStorageCreateRequest request) throws Exception;
 
     public boolean deleteSecretForStorage(SecretForStorageDeleteRequest request) throws Exception;
 
@@ -41,6 +41,7 @@ public interface IResourceService {
 
     public GenericResource createGenericResource(GenericResourceCreateRequest request) throws Exception;
 
+    public GenericResource getGenericResource(GenericResourceGetRequest request) throws Exception;
 
 //    public S3StorageListResponse listS3Storage(S3StorageListRequest request) throws Exception;
 //    public Optional<S3Storage> getS3Storage(S3StorageGetRequest request) throws Exception;

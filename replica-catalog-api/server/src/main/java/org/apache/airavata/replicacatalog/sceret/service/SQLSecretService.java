@@ -17,7 +17,6 @@
 
 package org.apache.airavata.replicacatalog.sceret.service;
 
-import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
 import org.apache.airavata.replicacatalog.sceret.mapper.ResourceSecretMapper;
 import org.apache.airavata.replicacatalog.sceret.model.S3SecretEntity;
@@ -33,9 +32,9 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component("SQLSecretBackend")
-public class SQLISecretService implements ISecretService {
+public class SQLSecretService implements ISecretService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SQLISecretService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SQLSecretService.class);
 
 
     @Autowired
@@ -62,10 +61,12 @@ public class SQLISecretService implements ISecretService {
     }
 
     @Override
-    public StorageSecret registerSecretForStorage(StorageSecret request) throws Exception {
+    public StorageSecret registerSecretForStorage(SecretCreateRequest request) throws Exception {
+        StorageSecret stoReq = request.getSecret();
         StorageSecret.Builder storageSecret = StorageSecret.newBuilder();
-        if (request.getStorageType().name().equals(StorageType.S3.name())) {
-            return storageSecret.setSecret(SecretWrapper.newBuilder().setS3Secret(createS3Secret(request.getSecret().getS3Secret()))).build();
+        if (stoReq.getStorageType().name().equals(StorageType.S3.name())) {
+            S3Secret secret= createS3Secret(stoReq.getSecret().getS3Secret());
+            return storageSecret.setSecret(SecretWrapper.newBuilder().setS3Secret( secret )).setSecretId(secret.getSecretId()).build();
         }
         return null;
     }

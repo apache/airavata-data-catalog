@@ -11,13 +11,17 @@ import org.apache.airavata.replicacatalog.catalog.stubs.*;
 import org.apache.airavata.replicacatalog.resource.stubs.common.FileResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceCreateRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceGetRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorage;
+import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageCreateRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageGetRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageCommon;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageCommonServiceGrpc;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageWrapper;
 import org.apache.airavata.replicacatalog.resource.stubs.s3.S3Storage;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretCommonServiceGrpc;
+import org.apache.airavata.replicacatalog.secret.stubs.common.SecretCreateRequest;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretWrapper;
 import org.apache.airavata.replicacatalog.secret.stubs.common.StorageSecret;
 import org.apache.airavata.replicacatalog.secret.stubs.s3.S3Secret;
@@ -40,12 +44,6 @@ public class ReplicaCatalogAPIClient {
     public StorageCommonServiceGrpc.StorageCommonServiceBlockingStub getBlockingStorageStub(Channel channel) {
         return StorageCommonServiceGrpc.newBlockingStub(channel);
     }
-
-    //    public GenericResourceServiceGrpc.GenericResourceServiceBlockingStub getBlockingResourceStub( Channel channel )
-    //    {
-    //        return GenericResourceServiceGrpc.newBlockingStub( channel );
-    //
-    //    }
 
     public SecretCommonServiceGrpc.SecretCommonServiceBlockingStub getBlockingSecretStub(Channel channel) {
         return SecretCommonServiceGrpc.newBlockingStub(channel);
@@ -90,6 +88,7 @@ public class ReplicaCatalogAPIClient {
                     .setEndpoint("https://s3.us-east-1.amazonaws.com").build();
 
             GenericResource resource = GenericResource.newBuilder()
+                    .setReplicaId(replicaResult.getDataReplicaId())
                     .setStorage(StorageWrapper.newBuilder().setS3Storage(storage).build())
                     .setFile(FileResource.newBuilder().setResourcePath("/astro.zip").build()).build();
             GenericResource resourceResult = client.createStorage(channel, resource);
@@ -101,18 +100,30 @@ public class ReplicaCatalogAPIClient {
             StorageSecret storageSecret = StorageSecret.newBuilder()
                     .setSecret(SecretWrapper.newBuilder().setS3Secret(secret).build())
                     .setStorageType(org.apache.airavata.replicacatalog.secret.stubs.common.StorageType.S3).build();
-
-            StorageSecret secretResult = client.createSecret(channel, storageSecret);
+            SecretCreateRequest secretCreateRequest = SecretCreateRequest.newBuilder().setSecret(storageSecret).build();
+            StorageSecret secretResult = client.createSecret(channel, secretCreateRequest);
 
             SecretForStorage secretForStorage = SecretForStorage.newBuilder()
                     .setStorageId(resourceResult.getStorage().getS3Storage().getStorageId())
-                    .setSecretId(secretResult.getSecretId()).setStorageType(StorageType.S3).build();
-
-            client.createCommonStorage(channel, secretForStorage);
-
+                    .setSecretId(secretResult.getSecret().getS3Secret().getSecretId()).setStorageType(StorageType.S3).build();
+            SecretForStorageCreateRequest createRequest = SecretForStorageCreateRequest.newBuilder().setSecretForStorage(secretForStorage).build();
+            SecretForStorage secretForStorageResult = client.createCommonStorage(channel, createRequest);
 
             System.out.println(
-                    MessageFormat.format("Created data product with id [{0}]", replicaResult.getDataReplicaId()));
+                    MessageFormat.format("Created data replica with id [{0}], Storage id [{1}], Secret id [{2}]",
+                            (Object[]) new String[]{replicaResult.getDataReplicaId(),secretForStorageResult.getStorageId(),secretForStorageResult.getSecretId()}));
+
+            DataReplicaGetRequest replicaGetRequest = DataReplicaGetRequest.newBuilder().setDataReplicaId(replicaResult.getDataReplicaId()).build();
+            DataReplicaGetResponse replicaResponse = client.blockingApiStub.getReplicaLocation(replicaGetRequest);
+            if (replicaResponse != null && replicaResponse.getDataReplica() != null) {
+               SecretForStorage secretForStorage1= client.getStorageSecretIds(channel,replicaResponse.getDataReplica().getDataReplicaId());
+               if(secretForStorage1!= null){
+                   System.out.println(
+                           MessageFormat.format("Loaded data replica with id [{0}], Storage id [{1}], Secret id [{2}]",
+                                   (Object[]) new String[]{replicaResponse.getDataReplica().getDataReplicaId(),secretForStorage1.getStorageId(),secretForStorage1.getSecretId()}));
+
+               }
+            }
 
             /*
             --- Sample scenario 2---
@@ -127,7 +138,7 @@ public class ReplicaCatalogAPIClient {
          */
 
         } finally {
-            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+            channel.shutdownNow().awaitTermination(180, TimeUnit.SECONDS);
         }
     }
 
@@ -146,9 +157,9 @@ public class ReplicaCatalogAPIClient {
     }
 
 
-    public SecretForStorage createCommonStorage(Channel channel, SecretForStorage secretForStorage) {
+    public SecretForStorage createCommonStorage(Channel channel, SecretForStorageCreateRequest createRequest) {
 
-        SecretForStorage response = getBlockingStorageStub(channel).registerSecretForStorage(secretForStorage);
+        SecretForStorage response = getBlockingStorageStub(channel).registerSecretForStorage(createRequest);
         return response;
     }
 
@@ -168,9 +179,17 @@ public class ReplicaCatalogAPIClient {
         return response;
     }
 
-    public StorageSecret createSecret(Channel channel, StorageSecret resource) {
-        StorageSecret response = getBlockingSecretStub(channel).registerSecret(resource);
+    public StorageSecret createSecret(Channel channel, SecretCreateRequest createRequest) {
+        StorageSecret response = getBlockingSecretStub(channel).registerSecret(createRequest);
         return response;
+    }
+
+    public SecretForStorage getStorageSecretIds(Channel channel, String replicaId){
+        GenericResourceGetRequest resourceGetRequest = GenericResourceGetRequest.newBuilder().setReplicaId(replicaId).build();
+        GenericResource resource = getBlockingStorageStub(channel).getGenericResource(resourceGetRequest);
+        SecretForStorageGetRequest request = SecretForStorageGetRequest.newBuilder().setStorageId(resource.getStorage().getS3Storage().getStorageId()).build();
+        SecretForStorage secretForStorage =  getBlockingStorageStub(channel).getSecretForStorage(request);
+        return secretForStorage;
     }
 
 

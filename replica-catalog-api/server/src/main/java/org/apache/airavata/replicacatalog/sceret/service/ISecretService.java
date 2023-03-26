@@ -27,7 +27,7 @@ public interface ISecretService {
     public void destroy();
 
     public StorageSecret getSecretForStorage(SecretGetRequest request) throws Exception;
-    public StorageSecret registerSecretForStorage(StorageSecret request) throws Exception;
+    public StorageSecret registerSecretForStorage(SecretCreateRequest request) throws Exception;
     public boolean deleteSecretForStorage(SecretDeleteRequest request) throws Exception;
     public SecretListResponse searchStorages(SecretSearchRequest request) throws Exception;
     public SecretListResponse listStorage(SecretListRequest request) throws Exception;

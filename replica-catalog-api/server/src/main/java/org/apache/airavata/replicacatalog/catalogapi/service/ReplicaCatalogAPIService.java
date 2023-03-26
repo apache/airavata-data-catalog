@@ -91,8 +91,15 @@ public class ReplicaCatalogAPIService extends ReplicaCatalogAPIServiceGrpc.Repli
     @Override
     public void getReplicaLocation(DataReplicaGetRequest request,
                                    StreamObserver<DataReplicaGetResponse> responseObserver) {
-        super.getReplicaLocation(request, responseObserver);
-    }
+
+        logger.info("Loading Replica for a Replica ID : {}", request.getDataReplicaId());
+
+        DataReplicaLocation result = dataCatalogService.getDataReplica(request.getDataReplicaId());
+
+        DataReplicaGetResponse.Builder responseBuilder = DataReplicaGetResponse.newBuilder();
+        responseBuilder.setDataReplica(result);
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();    }
 
     @Override
     public void removeReplicaLocation(DataReplicaDeleteRequest request,

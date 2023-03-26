@@ -43,9 +43,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component("SQLResourceBackend")
-public class SQLIResourceService implements IResourceService {
+public class SQLResourceService implements IResourceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SQLIResourceService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SQLResourceService.class);
     private DozerBeanMapper mapper = new DozerBeanMapper();
     @Autowired
     private GenericResourceRepository resourceRepository;
@@ -75,20 +75,44 @@ public class SQLIResourceService implements IResourceService {
     @Override
     public GenericResource createGenericResource(GenericResourceCreateRequest request) throws Exception {
         GenericResourceEntity resourceEntity = new GenericResourceEntity();
-        resourceEntity.setResourceId(UUID.randomUUID().toString());
-        resourceStorageMapper.mapGenericStorageModelToEntity(request.getResource(), resourceEntity);
-        GenericResourceEntity savedDataProductEntity = resourceRepository.save(resourceEntity);
+
         S3Storage storage = null;
         if (request.getStorageType() == StorageType.S3) {
             storage = createS3Storage(request.getResource().getStorage().getS3Storage());
         }
         StorageWrapper wrapper = StorageWrapper.newBuilder().setS3Storage(storage).build();
+        resourceEntity.setResourceId(UUID.randomUUID().toString());
+        resourceStorageMapper.mapGenericStorageModelToEntity(request.getResource(), resourceEntity);
+        resourceEntity.setStorageId(storage.getStorageId());
+        GenericResourceEntity savedDataProductEntity = resourceRepository.save(resourceEntity);
 
         GenericResource.Builder responseBuilder = GenericResource.newBuilder();
         resourceStorageMapper.mapGenericStorageEntityToModel(savedDataProductEntity, wrapper, responseBuilder);
         return responseBuilder.build();
     }
 
+    @Override
+    public GenericResource getGenericResource(GenericResourceGetRequest request) throws Exception {
+
+        List<GenericResourceEntity> savedGenericResourceEntityList = resourceRepository.findByReplicaId(request.getReplicaId());
+        if(savedGenericResourceEntityList.isEmpty()){
+            return null;
+        }
+        GenericResourceEntity resourceEntity = savedGenericResourceEntityList.get(0);
+        Optional<S3StorageEntity> storage = null;
+        StorageWrapper wrapper = null;
+        if (StorageType.S3.name().equals(resourceEntity.getStorageType().name() )) {
+            storage = s3StorageRepository.findById(resourceEntity.getStorageId());
+            if(storage.isPresent()){
+                S3Storage s3 =mapper.map(storage.get(),S3Storage.newBuilder().getClass()).build();
+                wrapper = StorageWrapper.newBuilder().setS3Storage(s3).build();
+            }
+        }
+
+        GenericResource.Builder responseBuilder = GenericResource.newBuilder();
+        resourceStorageMapper.mapGenericStorageEntityToModel(resourceEntity, wrapper, responseBuilder);
+        return responseBuilder.build();
+    }
 
     @Override
     public SecretForStorage getSecretForStorage(SecretForStorageGetRequest request) throws Exception {
@@ -105,15 +129,15 @@ public class SQLIResourceService implements IResourceService {
     }
 
     @Override
-    public SecretForStorage registerSecretForStorage(SecretForStorage request) throws Exception {
+    public SecretForStorage registerSecretForStorage(SecretForStorageCreateRequest request) throws Exception {
 
         StorageSecretEntity resourceEntity = new StorageSecretEntity();
-        resourceStorageMapper.mapStorageSecretModelToEntity(request, resourceEntity);
+        resourceStorageMapper.mapStorageSecretModelToEntity(request.getSecretForStorage(), resourceEntity);
         StorageSecretEntity savedDataProductEntity = resourceSecretRepository.save(resourceEntity);
         SecretForStorage.Builder responseBuilder = SecretForStorage.newBuilder();
         resourceStorageMapper.mapStorageSecretEntityToModel(savedDataProductEntity, responseBuilder);
 
-        return request;
+        return responseBuilder.build();
     }
 
     @Override

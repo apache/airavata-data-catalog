@@ -66,7 +66,12 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
 
     @Override
     public DataReplicaLocation getDataReplica(String replicaId) {
-        return null;
+
+        DataReplicaLocationEntity dataReplicaLocationEntity = dataReplicaLocationRepository.findByReplicaId(replicaId);
+        if (dataReplicaLocationEntity == null) {
+            logger.debug("Data Replica Location not exists");
+        }
+        return toDataReplicaLocation(dataReplicaLocationEntity);
     }
 
     @Override

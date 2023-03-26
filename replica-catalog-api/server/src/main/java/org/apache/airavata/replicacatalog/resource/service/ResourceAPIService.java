@@ -10,7 +10,10 @@ import org.apache.airavata.replicacatalog.resource.repository.GenericResourceRep
 import org.apache.airavata.replicacatalog.resource.repository.StorageSecretRepository;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceCreateRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceGetRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorage;
+import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageCreateRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageGetRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageCommonServiceGrpc;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
@@ -42,7 +45,19 @@ public class ResourceAPIService extends StorageCommonServiceGrpc.StorageCommonSe
     }
 
     @Override
-    public void registerSecretForStorage(SecretForStorage request, StreamObserver<SecretForStorage> responseObserver) {
+    public void getGenericResource(GenericResourceGetRequest request, StreamObserver<GenericResource> responseObserver) {
+        GenericResource genericResource = null;
+        try {
+            genericResource = resourceService.getGenericResource(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        responseObserver.onNext(genericResource);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void registerSecretForStorage(SecretForStorageCreateRequest request, StreamObserver<SecretForStorage> responseObserver) {
         SecretForStorage secretForStorage = null;
         try {
             secretForStorage = resourceService.registerSecretForStorage(request);
@@ -53,4 +68,15 @@ public class ResourceAPIService extends StorageCommonServiceGrpc.StorageCommonSe
         responseObserver.onCompleted();
     }
 
+    @Override
+    public void getSecretForStorage(SecretForStorageGetRequest request, StreamObserver<SecretForStorage> responseObserver) {
+        SecretForStorage secretForStorage = null;
+        try {
+            secretForStorage = resourceService.getSecretForStorage(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        responseObserver.onNext(secretForStorage);
+        responseObserver.onCompleted();
+    }
 }
