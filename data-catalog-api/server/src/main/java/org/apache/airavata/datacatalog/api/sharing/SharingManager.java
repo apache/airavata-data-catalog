@@ -5,6 +5,7 @@ import org.apache.airavata.datacatalog.api.GroupInfo;
 import org.apache.airavata.datacatalog.api.Permission;
 import org.apache.airavata.datacatalog.api.UserInfo;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
+import org.apache.custos.sharing.core.exceptions.CustosSharingException;
 
 public interface SharingManager {
 
@@ -25,7 +26,7 @@ public interface SharingManager {
      * @param permission
      * @return
      */
-    boolean userHasAccess(UserInfo userInfo, DataProduct dataProduct, Permission permission);
+    boolean userHasAccess(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Return the name of the database view that includes sharing information
@@ -44,7 +45,7 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission);
+    void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Revoke permission from the user for the given data product.
@@ -53,7 +54,7 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void revokePermissionFromUser(UserInfo userInfo, DataProduct dataProduct, Permission permission);
+    void revokePermissionFromUser(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Grant permission to the group for the given data product.
@@ -62,7 +63,7 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission);
+    void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Revoke permission from the group for the given data product.
@@ -71,7 +72,7 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void revokePermissionFromGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission);
+    void revokePermissionFromGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Return true if public access at the given permission is granted for the
@@ -82,7 +83,7 @@ public interface SharingManager {
      * @param permission
      * @return
      */
-    boolean hasPublicAccess(DataProduct dataProduct, Permission permission);
+    boolean hasPublicAccess(DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Grant public access to the given data product.
@@ -90,7 +91,7 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void grantPublicAccess(DataProduct dataProduct, Permission permission);
+    void grantPublicAccess(DataProduct dataProduct, Permission permission) throws Exception;
 
     /**
      * Revoke public access from the given data product.
@@ -98,5 +99,5 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void revokePublicAccess(DataProduct dataProduct, Permission permission);
+    void revokePublicAccess(DataProduct dataProduct, Permission permission) throws Exception;
 }

@@ -63,6 +63,7 @@ message DataProduct {
     string name = 3;
     optional string metadata = 4;
     repeated string metadata_schemas = 5;
+    string tenant_id = 6;
 }
 
 enum FieldValueType {
