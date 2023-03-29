@@ -71,7 +71,8 @@ public class DataCatalogServiceImpl implements DataCatalogService {
         dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
 
-        sharingManager.grantPermissionToUser(dataProduct.getOwner(), dataProduct, Permission.OWNER);
+        sharingManager.grantPermissionToUser(dataProduct.getOwner(), dataProduct, Permission.OWNER,
+                dataProduct.getOwner());
 
         return toDataProduct(savedDataProductEntity);
     }

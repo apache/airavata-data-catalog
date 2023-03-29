@@ -111,18 +111,21 @@ public class SharingManagerImpl implements SharingManager {
     }
 
     @Override
-    public void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission)
+    public void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission,
+            UserInfo sharedByUser)
             throws SharingException {
 
         List<String> userIds = new ArrayList<>();
         userIds.add(userInfo.getUserId());
+        String sharedByUserId = sharedByUser != null ? sharedByUser.getUserId() : null;
         try {
             createDataProductEntityIfMissing(dataProduct);
             // OWNER permission can't be assigned but it is granted when the data product is
             // created
             if (permission != Permission.OWNER) {
                 custosSharingImpl.shareEntity(userInfo.getTenantId(),
-                        dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.USER, null);
+                        dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.USER,
+                        sharedByUserId);
             }
         } catch (CustosSharingException e) {
             throw new SharingException(e);
@@ -145,14 +148,16 @@ public class SharingManagerImpl implements SharingManager {
     }
 
     @Override
-    public void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission)
+    public void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission,
+            UserInfo sharedByUser)
             throws SharingException {
 
         List<String> userIds = new ArrayList<>();
         userIds.add(groupInfo.getGroupId());
+        String sharedByUserId = sharedByUser != null ? sharedByUser.getUserId() : null;
         try {
             custosSharingImpl.shareEntity(groupInfo.getTenantId(),
-                    dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.GROUP, null);
+                    dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.GROUP, sharedByUserId);
         } catch (CustosSharingException e) {
             throw new SharingException(e);
         }

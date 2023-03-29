@@ -55,8 +55,10 @@ public interface SharingManager {
      * @param userInfo
      * @param dataProduct
      * @param permission
+     * @param sharedByUser optional (nullable), the user who is granting the
+     *                     permission
      */
-    void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission)
+    void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission, UserInfo sharedByUser)
             throws SharingException;
 
     /**
@@ -75,8 +77,11 @@ public interface SharingManager {
      * @param groupInfo
      * @param dataProduct
      * @param permission
+     * @param sharedByUser optional (nullable), the user who is granting the
+     *                     permission
      */
-    void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission)
+    void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission,
+            UserInfo sharedByUser)
             throws SharingException;
 
     /**
