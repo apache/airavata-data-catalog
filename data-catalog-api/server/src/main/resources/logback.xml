@@ -47,6 +47,10 @@
     <logger name="org.apache.airavata" level="INFO"/>
     <logger name="org.hibernate" level="INFO"/>
     <logger name="net.schmizz.sshj" level="WARN"/>
+    <!-- <logger name="org.apache.airavata" level="DEBUG"/> -->
+    <!-- <logger name="org.springframework.transaction.interceptor" level="TRACE"/> -->
+    <!-- <logger name="org.springframework.transaction" level="TRACE"/> -->
+    <!-- <logger name="org.springframework.orm.jpa" level="TRACE"/> -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="LOGFILE"/>

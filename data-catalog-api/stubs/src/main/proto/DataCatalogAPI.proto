@@ -62,7 +62,25 @@ message DataProduct {
     optional string parent_data_product_id = 2;
     string name = 3;
     optional string metadata = 4;
-    string tenant_id = 5;
+    repeated string metadata_schemas = 5;
+    string tenant_id = 6;
+}
+
+enum FieldValueType {
+    STRING = 0;
+    INTEGER = 1;
+    FLOAT = 2;
+    BOOLEAN = 3;
+    DATESTRING = 4;
+}
+message MetadataSchema {
+    string schema_name = 1;
+}
+message MetadataSchemaField {
+    string schema_name = 1;
+    string field_name = 2;
+    string json_path = 3;
+    FieldValueType value_type = 4;
 }
 
 message DataProductCreateRequest {
@@ -88,10 +106,101 @@ message DataProductDeleteRequest {
 }
 message DataProductDeleteResponse {
 }
+message DataProductAddToMetadataSchemaRequest {
+    UserInfo user_info = 1;
+    string data_product_id = 2;
+    string schema_name = 3;
+}
+message DataProductAddToMetadataSchemaResponse {
+    DataProduct data_product = 1;
+}
+message DataProductRemoveFromMetadataSchemaRequest {
+    UserInfo user_info = 1;
+    string data_product_id = 2;
+    string schema_name = 3;
+}
+message DataProductRemoveFromMetadataSchemaResponse {
+    DataProduct data_product = 1;
+}
+message DataProductSearchRequest {
+    UserInfo user_info = 1;
+    string sql = 2;
+}
+message DataProductSearchResponse {
+    repeated DataProduct data_products = 1;
+}
+
+
+message MetadataSchemaGetRequest {
+    UserInfo user_info = 1;
+    string schema_name = 2;
+}
+message MetadataSchemaGetResponse {
+    MetadataSchema metadata_schema = 1;
+}
+message MetadataSchemaCreateRequest {
+    UserInfo user_info = 1;
+    MetadataSchema metadata_schema = 2;
+}
+message MetadataSchemaCreateResponse {
+    MetadataSchema metadata_schema = 1;
+}
+message MetadataSchemaDeleteRequest {
+    UserInfo user_info = 1;
+    MetadataSchema metadata_schema = 2;
+}
+message MetadataSchemaDeleteResponse {
+}
+message MetadataSchemaFieldGetRequest {
+    UserInfo user_info = 1;
+    string schema_name = 2;
+    string field_name = 3;
+}
+message MetadataSchemaFieldGetResponse {
+    MetadataSchemaField metadata_schema_field = 1;
+}
+message MetadataSchemaFieldCreateRequest {
+    UserInfo user_info = 1;
+    MetadataSchemaField metadata_schema_field = 2;
+}
+message MetadataSchemaFieldCreateResponse {
+    MetadataSchemaField metadata_schema_field = 1;
+}
+message MetadataSchemaFieldUpdateRequest {
+    UserInfo user_info = 1;
+    MetadataSchemaField metadata_schema_field = 2;
+}
+message MetadataSchemaFieldUpdateResponse {
+    MetadataSchemaField metadata_schema_field = 1;
+}
+message MetadataSchemaFieldDeleteRequest {
+    UserInfo user_info = 1;
+    MetadataSchemaField metadata_schema_field = 2;
+}
+message MetadataSchemaFieldDeleteResponse {
+}
+message MetadataSchemaFieldListRequest {
+    UserInfo user_info = 1;
+    string schema_name = 2;
+}
+message MetadataSchemaFieldListResponse {
+    repeated MetadataSchemaField metadata_schema_fields = 1;
+}
 
 service DataCatalogAPIService {
     rpc createDataProduct(DataProductCreateRequest) returns (DataProductCreateResponse){}
     rpc updateDataProduct(DataProductUpdateRequest) returns (DataProductUpdateResponse){}
     rpc getDataProduct(DataProductGetRequest) returns (DataProductGetResponse){}
     rpc deleteDataProduct(DataProductDeleteRequest) returns (DataProductDeleteResponse){}
+    rpc getMetadataSchema(MetadataSchemaGetRequest) returns (MetadataSchemaGetResponse){}
+    rpc createMetadataSchema(MetadataSchemaCreateRequest) returns (MetadataSchemaCreateResponse){}
+    rpc deleteMetadataSchema(MetadataSchemaDeleteRequest) returns (MetadataSchemaDeleteResponse){}
+    rpc getMetadataSchemaField(MetadataSchemaFieldGetRequest) returns (MetadataSchemaFieldGetResponse){}
+    rpc createMetadataSchemaField(MetadataSchemaFieldCreateRequest) returns (MetadataSchemaFieldCreateResponse){}
+    rpc updateMetadataSchemaField(MetadataSchemaFieldUpdateRequest) returns (MetadataSchemaFieldUpdateResponse){}
+    rpc deleteMetadataSchemaField(MetadataSchemaFieldDeleteRequest) returns (MetadataSchemaFieldDeleteResponse){}
+    rpc getMetadataSchemaFields(MetadataSchemaFieldListRequest) returns (MetadataSchemaFieldListResponse){}
+    rpc addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest) returns (DataProductAddToMetadataSchemaResponse){}
+    rpc removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest) returns (DataProductRemoveFromMetadataSchemaResponse){}
+    rpc searchDataProducts(DataProductSearchRequest) returns (DataProductSearchResponse){}
 }
