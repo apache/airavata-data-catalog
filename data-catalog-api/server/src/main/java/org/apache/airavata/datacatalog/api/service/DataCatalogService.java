@@ -7,6 +7,7 @@ import org.apache.airavata.datacatalog.api.MetadataSchema;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
+import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 
 /**
@@ -14,7 +15,7 @@ import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
  */
 public interface DataCatalogService {
 
-    DataProduct createDataProduct(DataProduct dataProduct);
+    DataProduct createDataProduct(DataProduct dataProduct) throws SharingException;
 
     DataProduct updateDataProduct(DataProduct dataProduct);
 

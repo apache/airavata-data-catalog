@@ -8,21 +8,25 @@ import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.MetadataSchema;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
+import org.apache.airavata.datacatalog.api.Permission;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
+import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaFieldMapper;
 import org.apache.airavata.datacatalog.api.mapper.MetadataSchemaMapper;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
+import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryExecutor;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaFieldRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaRepository;
 import org.apache.airavata.datacatalog.api.service.DataCatalogService;
+import org.apache.airavata.datacatalog.api.sharing.SharingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,17 +58,20 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     @Autowired
     MetadataSchemaQueryExecutor metadataSchemaQueryExecutor;
 
-    @Override
-    public DataProduct createDataProduct(DataProduct dataProduct) {
+    @Autowired
+    SharingManager sharingManager;
 
-        // TODO: SharingManager.resolveUser
+    @Override
+    public DataProduct createDataProduct(DataProduct dataProduct) throws SharingException {
+
+        UserEntity owner = sharingManager.resolveUser(dataProduct.getOwner());
         DataProductEntity dataProductEntity = new DataProductEntity();
         dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(owner);
         dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
 
-        // TODO: SharingManager.grantPermissionToUser(userInfo, dataProduct,
-        // Permission.OWNER)
+        sharingManager.grantPermissionToUser(dataProduct.getOwner(), dataProduct, Permission.OWNER);
 
         return toDataProduct(savedDataProductEntity);
     }

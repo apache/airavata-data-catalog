@@ -12,6 +12,7 @@ import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.model.TenantEntity;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.repository.TenantRepository;
+import org.apache.custos.sharing.core.Entity;
 import org.apache.custos.sharing.core.EntityType;
 import org.apache.custos.sharing.core.PermissionType;
 import org.apache.custos.sharing.core.exceptions.CustosSharingException;
@@ -116,8 +117,13 @@ public class SharingManagerImpl implements SharingManager {
         List<String> userIds = new ArrayList<>();
         userIds.add(userInfo.getUserId());
         try {
-            custosSharingImpl.shareEntity(userInfo.getTenantId(),
-                    dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.USER, null);
+            createDataProductEntityIfMissing(dataProduct);
+            // OWNER permission can't be assigned but it is granted when the data product is
+            // created
+            if (permission != Permission.OWNER) {
+                custosSharingImpl.shareEntity(userInfo.getTenantId(),
+                        dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.USER, null);
+            }
         } catch (CustosSharingException e) {
             throw new SharingException(e);
         }
@@ -168,7 +174,7 @@ public class SharingManagerImpl implements SharingManager {
     @Override
     public boolean hasPublicAccess(DataProduct dataProduct, Permission permission) throws SharingException {
         try {
-            return custosSharingImpl.userHasAccess(dataProduct.getTenantId(), dataProduct.getDataProductId(),
+            return custosSharingImpl.userHasAccess(dataProduct.getOwner().getTenantId(), dataProduct.getDataProductId(),
                     permission.name(),
                     PUBLIC_ACCESS_GROUP);
         } catch (CustosSharingException e) {
@@ -183,7 +189,7 @@ public class SharingManagerImpl implements SharingManager {
         List<String> userIds = new ArrayList<>();
         userIds.add(PUBLIC_ACCESS_GROUP);
         try {
-            custosSharingImpl.shareEntity(dataProduct.getTenantId(),
+            custosSharingImpl.shareEntity(dataProduct.getOwner().getTenantId(),
                     dataProduct.getDataProductId(), permission.name(), userIds, true, Constants.GROUP, null);
         } catch (CustosSharingException e) {
             throw new SharingException(e);
@@ -196,10 +202,27 @@ public class SharingManagerImpl implements SharingManager {
         List<String> userIds = new ArrayList<>();
         userIds.add(PUBLIC_ACCESS_GROUP);
         try {
-            custosSharingImpl.revokePermission(dataProduct.getTenantId(),
+            custosSharingImpl.revokePermission(dataProduct.getOwner().getTenantId(),
                     dataProduct.getDataProductId(), permission.name(), userIds);
         } catch (CustosSharingException e) {
             throw new SharingException(e);
         }
     }
+
+    private void createDataProductEntityIfMissing(DataProduct dataProduct) throws CustosSharingException {
+
+        Entity dataProductEntity = Entity.newBuilder()
+                .setId(dataProduct.getDataProductId())
+                .setParentId(dataProduct.getParentDataProductId())
+                .setName(dataProduct.getName())
+                .setType(DATA_PRODUCT_ENTITY_TYPE_ID)
+                .setOwnerId(dataProduct.getOwner().getUserId())
+                .build();
+
+        String tenantId = dataProduct.getOwner().getTenantId();
+        if (!custosSharingImpl.isEntityExists(tenantId, dataProduct.getDataProductId())) {
+            custosSharingImpl.createEntity(dataProductEntity, tenantId);
+        }
+    }
+
 }

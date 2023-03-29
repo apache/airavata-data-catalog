@@ -63,7 +63,7 @@ message DataProduct {
     string name = 3;
     optional string metadata = 4;
     repeated string metadata_schemas = 5;
-    string tenant_id = 6;
+    UserInfo owner = 6;
 }
 
 enum FieldValueType {
@@ -84,25 +84,29 @@ message MetadataSchemaField {
 }
 
 message DataProductCreateRequest {
-    DataProduct data_product = 1;
+    UserInfo user_info = 1;
+    DataProduct data_product = 2;
 }
 message DataProductCreateResponse {
     DataProduct data_product = 1;
 }
 message DataProductUpdateRequest {
-    DataProduct data_product = 1;
+    UserInfo user_info = 1;
+    DataProduct data_product = 2;
 }
 message DataProductUpdateResponse {
     DataProduct data_product = 1;
 }
 message DataProductGetRequest {
-    string data_product_id = 1;
+    UserInfo user_info = 1;
+    string data_product_id = 2;
 }
 message DataProductGetResponse {
     DataProduct data_product = 1;
 }
 message DataProductDeleteRequest {
-    string data_product_id = 1;
+    UserInfo user_info = 1;
+    string data_product_id = 2;
 }
 message DataProductDeleteResponse {
 }

@@ -27,6 +27,9 @@ public class DataProductMapper {
     @Autowired
     MetadataSchemaRepository metadataSchemaRepository;
 
+    @Autowired
+    UserInfoMapper userInfoMapper;
+
     public void mapModelToEntity(DataProduct dataProduct, DataProductEntity dataProductEntity) {
 
         dataProductEntity.setName(dataProduct.getName());
@@ -34,8 +37,9 @@ public class DataProductMapper {
         if (dataProduct.hasParentDataProductId() && !dataProduct.getParentDataProductId().isEmpty()) {
             DataProductEntity parentDataProductEntity = dataProductRepository
                     .findByExternalId(dataProduct.getParentDataProductId())
-                    .orElseThrow(() -> new EntityNotFoundException("Could not find the parent data product with the ID: "
-                            + dataProduct.getParentDataProductId()));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("Could not find the parent data product with the ID: "
+                                    + dataProduct.getParentDataProductId()));
             dataProductEntity.setParentDataProductEntity(parentDataProductEntity);
         }
         if (dataProduct.hasMetadata()) {
@@ -80,5 +84,7 @@ public class DataProductMapper {
                 throw new RuntimeException(e);
             }
         }
+
+        userInfoMapper.mapEntityToModel(dataProductEntity.getOwner(), dataProductBuilder.getOwnerBuilder());
     }
 }

@@ -39,6 +39,7 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
+import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
@@ -62,10 +63,20 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
         logger.info("Creating data product {}", request.getDataProduct());
 
-        DataProduct result = dataCatalogService.createDataProduct(request.getDataProduct());
+        // Set the owner as the requesting user
+        DataProduct dataProduct = request.getDataProduct().toBuilder().setOwner(request.getUserInfo()).build();
 
-        responseObserver.onNext(DataProductCreateResponse.newBuilder().setDataProduct(result).build());
-        responseObserver.onCompleted();
+        DataProduct result;
+        try {
+            result = dataCatalogService.createDataProduct(dataProduct);
+            responseObserver.onNext(DataProductCreateResponse.newBuilder().setDataProduct(result).build());
+            responseObserver.onCompleted();
+        } catch (SharingException e) {
+            logger.error("Sharing error when trying to create data product", e);
+            responseObserver.onError(Status.INTERNAL.withDescription(e.getMessage()).asException());
+            responseObserver.onCompleted();
+        }
+
     }
 
     @Override

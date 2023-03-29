@@ -52,7 +52,10 @@ public class DataProductEntity {
     @JoinTable(name = "data_product_metadata_schema", joinColumns = @JoinColumn(name = "data_product_id"), inverseJoinColumns = @JoinColumn(name = "metadata_schema_id"))
     private Set<MetadataSchemaEntity> metadataSchemas = new HashSet<>();
 
-    // TODO: ManyToOne mapping to owner: UserEntity
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "owner_id", referencedColumnName = "user_id", nullable = false, updatable = false)
+    private UserEntity owner;
+
     public Long getDataProductId() {
         return dataProductId;
     }
@@ -107,6 +110,14 @@ public class DataProductEntity {
 
     public void removeMetadataSchema(MetadataSchemaEntity metadataSchema) {
         this.metadataSchemas.remove(metadataSchema);
+    }
+
+    public UserEntity getOwner() {
+        return owner;
+    }
+
+    public void setOwner(UserEntity owner) {
+        this.owner = owner;
     }
 
     @Override

@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
@@ -32,6 +34,10 @@ public class UserEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false, updatable = false)
+    private TenantEntity tenant;
+
     public Long getUserId() {
         return userId;
     }
@@ -54,6 +60,14 @@ public class UserEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public TenantEntity getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(TenantEntity tenant) {
+        this.tenant = tenant;
     }
 
     @Override
