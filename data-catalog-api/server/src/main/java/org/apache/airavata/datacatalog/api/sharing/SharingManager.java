@@ -4,8 +4,8 @@ import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.GroupInfo;
 import org.apache.airavata.datacatalog.api.Permission;
 import org.apache.airavata.datacatalog.api.UserInfo;
+import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
-import org.apache.custos.sharing.core.exceptions.CustosSharingException;
 
 public interface SharingManager {
 
@@ -15,7 +15,7 @@ public interface SharingManager {
      * @param userInfo
      * @return
      */
-    UserEntity resolveUser(UserInfo userInfo);
+    UserEntity resolveUser(UserInfo userInfo) throws SharingException;
 
     /**
      * Return true if the user has access to the data product with the given
@@ -26,7 +26,7 @@ public interface SharingManager {
      * @param permission
      * @return
      */
-    boolean userHasAccess(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws Exception;
+    boolean userHasAccess(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws SharingException;
 
     /**
      * Return the name of the database view that includes sharing information
@@ -45,7 +45,8 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws Exception;
+    void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission)
+            throws SharingException;
 
     /**
      * Revoke permission from the user for the given data product.
@@ -54,7 +55,8 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void revokePermissionFromUser(UserInfo userInfo, DataProduct dataProduct, Permission permission) throws Exception;
+    void revokePermissionFromUser(UserInfo userInfo, DataProduct dataProduct, Permission permission)
+            throws SharingException;
 
     /**
      * Grant permission to the group for the given data product.
@@ -63,7 +65,8 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission) throws Exception;
+    void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission)
+            throws SharingException;
 
     /**
      * Revoke permission from the group for the given data product.
@@ -72,7 +75,8 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void revokePermissionFromGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission) throws Exception;
+    void revokePermissionFromGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission)
+            throws SharingException;
 
     /**
      * Return true if public access at the given permission is granted for the
@@ -83,7 +87,7 @@ public interface SharingManager {
      * @param permission
      * @return
      */
-    boolean hasPublicAccess(DataProduct dataProduct, Permission permission) throws Exception;
+    boolean hasPublicAccess(DataProduct dataProduct, Permission permission) throws SharingException;
 
     /**
      * Grant public access to the given data product.
@@ -91,7 +95,7 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void grantPublicAccess(DataProduct dataProduct, Permission permission) throws Exception;
+    void grantPublicAccess(DataProduct dataProduct, Permission permission) throws SharingException;
 
     /**
      * Revoke public access from the given data product.
@@ -99,5 +103,5 @@ public interface SharingManager {
      * @param dataProduct
      * @param permission
      */
-    void revokePublicAccess(DataProduct dataProduct, Permission permission) throws Exception;
+    void revokePublicAccess(DataProduct dataProduct, Permission permission) throws SharingException;
 }
