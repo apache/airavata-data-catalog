@@ -2,26 +2,90 @@ package org.apache.airavata.datacatalog.api.sharing;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.GroupInfo;
 import org.apache.airavata.datacatalog.api.Permission;
 import org.apache.airavata.datacatalog.api.UserInfo;
 import org.apache.airavata.datacatalog.api.exception.SharingException;
+import org.apache.airavata.datacatalog.api.model.TenantEntity;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
+import org.apache.airavata.datacatalog.api.repository.TenantRepository;
+import org.apache.custos.sharing.core.EntityType;
+import org.apache.custos.sharing.core.PermissionType;
 import org.apache.custos.sharing.core.exceptions.CustosSharingException;
 import org.apache.custos.sharing.core.impl.SharingImpl;
 import org.apache.custos.sharing.core.utils.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class SharingManagerImpl implements SharingManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(SharingManagerImpl.class);
+
+    private static final String DATA_PRODUCT_ENTITY_TYPE_ID = "DATA_PRODUCT";
+
     @Autowired
     SharingImpl custosSharingImpl;
 
+    @Autowired
+    TenantRepository tenantRepository;
+
     private static final String PUBLIC_ACCESS_GROUP = "public_access_group";
+
+    @PostConstruct
+    public void initializeTenants() throws SharingException {
+
+        logger.info("Initializing all tenants");
+        List<TenantEntity> tenants = tenantRepository.findAll();
+        for (TenantEntity tenant : tenants) {
+            this.initialize(tenant.getExternalId());
+        }
+    }
+
+    @Override
+    public void initialize(String tenantId) throws SharingException {
+
+        logger.info("Initializing tenant {}", tenantId);
+
+        // Create DataProduct entity type
+        EntityType entityType = EntityType.newBuilder()
+                .setId(DATA_PRODUCT_ENTITY_TYPE_ID)
+                .setName("Data Product")
+                .build();
+        try {
+            Optional<EntityType> existingEntityType = custosSharingImpl.getEntityType(tenantId, entityType.getId());
+            if (!existingEntityType.isPresent()) {
+                custosSharingImpl.createEntityType(tenantId, entityType);
+            }
+        } catch (CustosSharingException e) {
+            throw new SharingException(e);
+        }
+
+        // Create permission types for all permissions
+        for (Permission permission : Permission.values()) {
+
+            PermissionType permissionType = PermissionType.newBuilder()
+                    .setId(permission.name())
+                    .setName(permission.name())
+                    .build();
+            try {
+                Optional<PermissionType> existingPermissionType = custosSharingImpl.getPermissionType(tenantId,
+                        permissionType.getId());
+                if (!existingPermissionType.isPresent()) {
+                    custosSharingImpl.createPermissionType(permissionType, tenantId);
+                }
+            } catch (CustosSharingException e) {
+                throw new SharingException(e);
+            }
+        }
+    }
 
     @Override
     public UserEntity resolveUser(UserInfo userInfo) {

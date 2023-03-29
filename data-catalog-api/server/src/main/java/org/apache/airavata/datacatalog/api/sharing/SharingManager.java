@@ -10,6 +10,17 @@ import org.apache.airavata.datacatalog.api.model.UserEntity;
 public interface SharingManager {
 
     /**
+     * Initialize the sharing manager as necessary. In general this would be called
+     * once when a tenant is first created and also once for each tenant on startup
+     * (in case initialization needs to be redone or new steps have been added to
+     * initialization).
+     *
+     * @param tenantId
+     * @throws SharingException
+     */
+    void initialize(String tenantId) throws SharingException;
+
+    /**
      * Get or create a {@link UserEntity}.
      *
      * @param userInfo
