@@ -21,11 +21,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.GenericGenerator;
 
 
 
 @Entity
+@Table(name = "S3_SECRET")
 public class S3SecretEntity {
 
     @Id
