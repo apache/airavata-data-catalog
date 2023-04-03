@@ -107,7 +107,7 @@ public class SharingManagerImpl implements SharingManager {
 
     @Override
     public String getDataProductSharingView() {
-        return null;
+        return "data_catalog.custos_data_product_sharing_view";
     }
 
     @Override
