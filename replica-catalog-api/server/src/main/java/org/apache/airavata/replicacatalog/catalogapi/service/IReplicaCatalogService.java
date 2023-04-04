@@ -7,15 +7,6 @@ import java.util.List;
 
 public interface IReplicaCatalogService {
 
-    DataReplicaLocation createDataReplica(DataReplicaLocation dataReplica);
-
-    DataReplicaLocation updateDataReplica(DataReplicaLocation dataReplica);
-
-    DataReplicaLocation getDataReplica(String replicaId);
-
-    void deleteDataReplica(String replicaId);
-
-
     DataProduct createDataProduct(DataProduct dataProduct);
 
     DataProduct updateDataProduct(DataProduct dataProduct);
@@ -24,5 +15,12 @@ public interface IReplicaCatalogService {
 
     void deleteDataProduct(String productUri);
 
+    DataReplicaLocation createDataReplica(DataReplicaLocation dataReplica);
+
+    DataReplicaLocation updateDataReplica(DataReplicaLocation dataReplica);
+
+    DataReplicaLocation getDataReplica(String replicaId);
+
+    void deleteDataReplica(String replicaId);
 
 }

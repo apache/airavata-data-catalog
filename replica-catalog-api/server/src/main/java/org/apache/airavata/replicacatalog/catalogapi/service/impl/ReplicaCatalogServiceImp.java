@@ -1,5 +1,6 @@
 package org.apache.airavata.replicacatalog.catalogapi.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataProduct;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaLocation;
@@ -33,6 +34,50 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
 
     @Autowired
     DataReplicaMapper replicaMapper = new DataReplicaMapper();
+
+
+
+    @Override
+    public DataProduct createDataProduct(DataProduct dataProduct) {
+        DataProductEntity dataProductEntity = new DataProductEntity();
+
+        if (dataProduct != null && dataProduct.getProductUri() != null) {
+            dataProductEntity.setProductUri(dataProduct.getProductUri());
+        }
+        dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
+
+        if (dataProductEntity.getProductUri() == null) {
+            dataProductEntity.setProductUri(UUID.randomUUID().toString());
+        }
+        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
+        return toDataProduct(savedDataProductEntity);
+    }
+
+    @Override
+    public DataProduct updateDataProduct(DataProduct dataProduct) {
+
+        DataProductEntity dataProductEntity = dataProductRepository.findByProductUri(dataProduct.getProductUri());
+        if (dataProductEntity == null) {
+            logger.warn("Data product not exists");
+            throw new EntityNotFoundException("Could not find a data product with the ID: " + dataProduct.getProductUri());
+        }
+        dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
+        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
+
+        return toDataProduct(savedDataProductEntity);
+    }
+
+    @Override
+    public DataProduct getDataProduct(String productUri) {
+        DataProductEntity dataProductEntity = dataProductRepository.findByProductUri(productUri);
+        return toDataProduct(dataProductEntity);
+    }
+
+    @Override
+    public void deleteDataProduct(String productUri) {
+        dataProductRepository.deleteByProductUri(productUri);
+    }
+
 
 
     @Override
@@ -76,38 +121,7 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
 
     @Override
     public void deleteDataReplica(String replicaId) {
-
-    }
-
-    @Override
-    public DataProduct createDataProduct(DataProduct dataProduct) {
-        DataProductEntity dataProductEntity = new DataProductEntity();
-
-        if (dataProduct != null && dataProduct.getProductUri() != null) {
-            dataProductEntity.setProductUri(dataProduct.getProductUri());
-        }
-        dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
-
-        if (dataProductEntity.getProductUri() == null) {
-            dataProductEntity.setProductUri(UUID.randomUUID().toString());
-        }
-        DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
-        return toDataProduct(savedDataProductEntity);
-    }
-
-    @Override
-    public DataProduct updateDataProduct(DataProduct dataProduct) {
-        return null;
-    }
-
-    @Override
-    public DataProduct getDataProduct(String productUri) {
-        return null;
-    }
-
-    @Override
-    public void deleteDataProduct(String productUri) {
-
+        dataReplicaLocationRepository.deleteByReplicaId(replicaId);
     }
 
 

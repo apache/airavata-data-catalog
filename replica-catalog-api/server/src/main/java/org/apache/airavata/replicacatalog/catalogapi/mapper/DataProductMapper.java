@@ -1,6 +1,8 @@
 package org.apache.airavata.replicacatalog.catalogapi.mapper;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,13 +27,19 @@ public class DataProductMapper {
 
     public void mapModelToEntity(DataProduct dataProduct, DataProductEntity dataProductEntity) {
 
-        dataProductEntity.setProductUri(dataProduct.getProductUri());
+        // For new data product entities
+        if (dataProductEntity.getProductUri() == null) {
+            dataProductEntity.setProductUri(dataProduct.getProductUri());
+            dataProductEntity.setCreationTime(new Timestamp(System.currentTimeMillis()));
+        }
         dataProductEntity.setProductName(dataProduct.getProductName());
         dataProductEntity.setProductDescription(dataProduct.getProductDescription());
         dataProductEntity.setDataProductType(dataProduct.getDataProductType());
         dataProductEntity.setParentProductUri(dataProduct.getParentProductUri());
-        dataProductEntity.setCreationTime(new Timestamp(System.currentTimeMillis()));
+        dataProductEntity.setLastModifiedTime(new Timestamp(System.currentTimeMillis()));
 
+        //TODO Map metadata
+        mapMetaData(dataProduct, dataProductEntity);
     }
 
     public void mapEntityToModel(DataProductEntity dataProductEntity, DataProduct.Builder dataProductBuilder) {
@@ -44,4 +52,14 @@ public class DataProductMapper {
                 .setCreationTime(dataProductEntity.getCreationTime().getTime()).build();
 
     }
+
+    private void mapMetaData(DataProduct dataProduct, DataProductEntity dataProductEntity) {
+        Map<String, String> newMetaData = new HashMap<>();
+        dataProduct.getMetadataMap().keySet().forEach(m -> {
+            newMetaData.put(m, dataProduct.getMetadataMap().get(m));
+        });
+        dataProductEntity.setProductMetadata(newMetaData);
+    }
+
+
 }

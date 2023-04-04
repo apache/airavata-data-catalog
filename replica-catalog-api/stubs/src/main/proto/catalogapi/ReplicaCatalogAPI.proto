@@ -73,15 +73,16 @@ enum DataProductType {
 // Entity which used to model a replica entry
 message DataReplicaLocation {
   string data_replica_id = 1;             // Unique replica id
-  string data_product_id = 2;
-  string storage_resource_id = 3;         // Replica storage id (TO link the storage entry)
-  string replica_name = 4;                // Replica user friendly name
-  string replica_description = 5;         // Replica description
-  int64 creation_time = 6;                // Replica creation date and time
-  int64 last_modified_time = 7;           // Last modified time of replica
-  int64 valid_until_time = 8;             // Validity time of the replica
-  StorageType storage_type = 9;          // Storage type of the replica
-  map<string, string> metadata = 10;      // Replica's metadata information
+  string data_product_id = 2;             // related data uri
+  string parent_replica_id = 3;           // If there is parent replica (Like directory structure)
+  string storage_resource_id = 4;         // Replica storage id (TO link the storage entry)
+  string replica_name = 5;                // Replica user friendly name
+  string replica_description = 6;         // Replica description
+  int64 creation_time = 7;                // Replica creation date and time
+  int64 last_modified_time = 8;           // Last modified time of replica
+  int64 valid_until_time = 9;             // Validity time of the replica
+  StorageType storage_type = 10;          // Storage type of the replica
+  map<string, string> metadata = 11;      // Replica's metadata information
 }
 
 message DataReplicaCreateRequest {
