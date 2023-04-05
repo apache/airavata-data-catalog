@@ -94,17 +94,22 @@ public class SQLResourceService implements IResourceService {
     @Override
     public GenericResource getGenericResource(GenericResourceGetRequest request) throws Exception {
 
-        List<GenericResourceEntity> savedGenericResourceEntityList = resourceRepository.findByReplicaId(request.getReplicaId());
-        if(savedGenericResourceEntityList.isEmpty()){
+        Optional<GenericResourceEntity> savedGenericResourceEntityList = Optional.empty();
+        if (!request.getReplicaId().isBlank()) {
+            savedGenericResourceEntityList = resourceRepository.findByReplicaId(request.getReplicaId());
+        } else if (!request.getResourceId().isBlank()) {
+            savedGenericResourceEntityList = resourceRepository.findByResourceId(request.getResourceId());
+        }
+        if (savedGenericResourceEntityList.isEmpty()) {
             return null;
         }
-        GenericResourceEntity resourceEntity = savedGenericResourceEntityList.get(0);
-        Optional<S3StorageEntity> storage = null;
+        GenericResourceEntity resourceEntity = savedGenericResourceEntityList.get();
+        Optional<S3StorageEntity> storage = Optional.empty();
         StorageWrapper wrapper = null;
-        if (StorageType.S3.name().equals(resourceEntity.getStorageType().name() )) {
+        if (StorageType.S3.name().equals(resourceEntity.getStorageType().name())) {
             storage = s3StorageRepository.findById(resourceEntity.getStorageId());
-            if(storage.isPresent()){
-                S3Storage s3 =mapper.map(storage.get(),S3Storage.newBuilder().getClass()).build();
+            if (storage.isPresent()) {
+                S3Storage s3 = mapper.map(storage.get(), S3Storage.newBuilder().getClass()).build();
                 wrapper = StorageWrapper.newBuilder().setS3Storage(s3).build();
             }
         }
@@ -112,6 +117,51 @@ public class SQLResourceService implements IResourceService {
         GenericResource.Builder responseBuilder = GenericResource.newBuilder();
         resourceStorageMapper.mapGenericStorageEntityToModel(resourceEntity, wrapper, responseBuilder);
         return responseBuilder.build();
+    }
+
+    @Override
+    public GenericResource updateGenericResource(GenericResourceUpdateRequest request) throws Exception {
+
+        Optional<GenericResourceEntity> savedGenericResourceEntityList = Optional.empty();
+        if (!request.getResourceId().isBlank()) {
+
+            savedGenericResourceEntityList = resourceRepository.findByResourceId(request.getResourceId());
+
+        } else if (request.getGenericResource().hasStorage()) {
+
+            savedGenericResourceEntityList = resourceRepository.findByResourceId(request.getGenericResource().getResourceId());
+
+        }
+        if (savedGenericResourceEntityList.isEmpty()) {
+            return null;
+        }
+        GenericResourceEntity resourceEntity = savedGenericResourceEntityList.get();
+        Optional<S3StorageEntity> storage = null;
+        StorageWrapper wrapper = null;
+        if (StorageType.S3.name().equals(resourceEntity.getStorageType().name() )) {
+            storage = s3StorageRepository.findById(resourceEntity.getStorageId());
+            if (storage.isPresent()) {
+                boolean updated = updateS3Storage(storage.get(), request.getGenericResource().getStorage().getS3Storage());
+                if (updated) {
+                    S3Storage s3 = mapper.map(storage.get(), S3Storage.newBuilder().getClass()).build();
+                    wrapper = StorageWrapper.newBuilder().setS3Storage(s3).build();
+                }
+            }
+        }
+
+        resourceStorageMapper.mapGenericStorageModelToEntity(request.getGenericResource(), resourceEntity);
+
+        GenericResourceEntity savedDataProductEntity = resourceRepository.save(resourceEntity);
+
+        GenericResource.Builder responseBuilder = GenericResource.newBuilder();
+        resourceStorageMapper.mapGenericStorageEntityToModel(savedDataProductEntity, wrapper, responseBuilder);
+        return responseBuilder.build();
+    }
+
+    @Override
+    public GenericResource deleteGenericResource(GenericResourceDeleteRequest request) throws Exception {
+        resourceRepository.deleteByResourceId(request.getResourceId());
+        return null;
     }
 
     @Override
@@ -226,8 +276,14 @@ public class SQLResourceService implements IResourceService {
     }
 
 
-    public boolean updateS3Storage(S3StorageUpdateRequest request) throws Exception {
-        s3StorageRepository.save(mapper.map(request, S3StorageEntity.class));
+    public boolean updateS3Storage(S3StorageEntity entity, S3Storage storage) throws Exception {
+
+        entity.setEndpoint(storage.getEndpoint());
+        entity.setName(storage.getName());
+        entity.setBucketName(storage.getBucketName());
+        entity.setRegion(storage.getRegion());
+        entity.setUseTLS(storage.getUseTLS());
+        s3StorageRepository.save(entity);
         return true;
     }
 

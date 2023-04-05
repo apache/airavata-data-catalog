@@ -99,7 +99,7 @@ message GenericResourceUpdateRequest {
     org.apache.airavata.replicacatalog.resource.stubs.common.FileResource file = 3;
     org.apache.airavata.replicacatalog.resource.stubs.common.DirectoryResource directory = 4;
   }
-  GenericResource storage = 5;
+  GenericResource genericResource = 5;
 
 }
 

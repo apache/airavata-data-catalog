@@ -43,6 +43,10 @@ public interface IResourceService {
 
     public GenericResource getGenericResource(GenericResourceGetRequest request) throws Exception;
 
+    public GenericResource updateGenericResource(GenericResourceUpdateRequest request) throws Exception;
+
+    public GenericResource deleteGenericResource(GenericResourceDeleteRequest request) throws Exception;
+
 //    public S3StorageListResponse listS3Storage(S3StorageListRequest request) throws Exception;
 //    public Optional<S3Storage> getS3Storage(S3StorageGetRequest request) throws Exception;
 //    public S3Storage createS3Storage(S3StorageCreateRequest request) throws Exception;

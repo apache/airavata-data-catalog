@@ -1,16 +1,13 @@
 package org.apache.airavata.replicacatalog.resource.service;
 
 import io.grpc.stub.StreamObserver;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductCreateResponse;
-import org.apache.airavata.replicacatalog.catalogapi.service.IReplicaCatalogService;
-import org.apache.airavata.replicacatalog.resource.mapper.ResourceStorageMapper;
-import org.apache.airavata.replicacatalog.resource.model.GenericResourceEntity;
-import org.apache.airavata.replicacatalog.resource.model.StorageSecretEntity;
-import org.apache.airavata.replicacatalog.resource.repository.GenericResourceRepository;
-import org.apache.airavata.replicacatalog.resource.repository.StorageSecretRepository;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceCreateRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceDeleteRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceDeleteResponse;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceGetRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceUpdateRequest;
+import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceUpdateResponse;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorage;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageCreateRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageGetRequest;
@@ -19,8 +16,6 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.UUID;
 
 @GRpcService
 public class ResourceAPIService extends StorageCommonServiceGrpc.StorageCommonServiceImplBase {
@@ -53,6 +48,37 @@ public class ResourceAPIService extends StorageCommonServiceGrpc.StorageCommonSe
             throw new RuntimeException(e);
         }
         responseObserver.onNext(genericResource);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void updateGenericResource(GenericResourceUpdateRequest request, StreamObserver<GenericResourceUpdateResponse> responseObserver) {
+
+        GenericResource genericResource = null;
+        try {
+            genericResource = resourceService.updateGenericResource(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        GenericResourceUpdateResponse.Builder responseBuilder = GenericResourceUpdateResponse.newBuilder();
+        responseBuilder.setResourceId(genericResource.getResourceId());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteGenericResource(GenericResourceDeleteRequest request, StreamObserver<GenericResourceDeleteResponse> responseObserver) {
+        GenericResource genericResource = null;
+        try {
+            genericResource = resourceService.deleteGenericResource(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        GenericResourceDeleteResponse.Builder responseBuilder = GenericResourceDeleteResponse.newBuilder();
+        responseBuilder.setStatus(genericResource != null);
+        responseObserver.onNext(responseBuilder.build());
         responseObserver.onCompleted();
     }
 

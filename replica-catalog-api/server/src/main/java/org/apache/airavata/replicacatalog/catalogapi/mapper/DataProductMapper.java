@@ -30,13 +30,18 @@ public class DataProductMapper {
         // For new data product entities
         if (dataProductEntity.getProductUri() == null) {
             dataProductEntity.setProductUri(dataProduct.getProductUri());
-            dataProductEntity.setCreationTime(new Timestamp(System.currentTimeMillis()));
         }
         dataProductEntity.setProductName(dataProduct.getProductName());
         dataProductEntity.setProductDescription(dataProduct.getProductDescription());
         dataProductEntity.setDataProductType(dataProduct.getDataProductType());
         dataProductEntity.setParentProductUri(dataProduct.getParentProductUri());
         dataProductEntity.setLastModifiedTime(new Timestamp(System.currentTimeMillis()));
+
+        if (dataProduct.getCreationTime() < 1) {
+            dataProductEntity.setCreationTime(new Timestamp(System.currentTimeMillis()));
+        } else {
+            dataProductEntity.setCreationTime(new Timestamp(dataProduct.getCreationTime()));
+        }
 
         //TODO Map metadata
         mapMetaData(dataProduct, dataProductEntity);
