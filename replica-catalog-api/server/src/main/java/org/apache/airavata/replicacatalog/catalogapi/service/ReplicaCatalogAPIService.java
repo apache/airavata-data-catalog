@@ -6,15 +6,6 @@ import org.apache.airavata.replicacatalog.catalog.stubs.AllDataReplicaDeleteRequ
 import org.apache.airavata.replicacatalog.catalog.stubs.AllDataReplicaDeleteResponse;
 import org.apache.airavata.replicacatalog.catalog.stubs.AllDataReplicaGetRequest;
 import org.apache.airavata.replicacatalog.catalog.stubs.AllDataReplicaGetResponse;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProduct;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductCreateRequest;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductCreateResponse;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductDeleteRequest;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductDeleteResponse;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductGetRequest;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductGetResponse;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductUpdateRequest;
-import org.apache.airavata.replicacatalog.catalog.stubs.DataProductUpdateResponse;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaCreateRequest;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaCreateResponse;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaDeleteRequest;
@@ -24,7 +15,6 @@ import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaGetResponse;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaLocation;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaUpdateRequest;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaUpdateResponse;
-import org.apache.airavata.replicacatalog.catalogapi.mapper.DataProductMapper;
 import org.apache.airavata.replicacatalog.catalogapi.mapper.DataReplicaMapper;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
@@ -38,50 +28,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ReplicaCatalogAPIService extends ReplicaCatalogAPIServiceGrpc.ReplicaCatalogAPIServiceImplBase {
     private static final Logger logger = LoggerFactory.getLogger(ReplicaCatalogAPIService.class);
 
-
-    @Autowired
-    DataProductMapper dataProductMapper = new DataProductMapper();
-
     @Autowired
     DataReplicaMapper replicaMapper = new DataReplicaMapper();
 
     @Autowired
     IReplicaCatalogService catalogService;
-
-
-    @Override
-    public void registerDataProduct(DataProductCreateRequest request, StreamObserver<DataProductCreateResponse> responseObserver) {
-        DataProduct result = catalogService.createDataProduct(request.getDataProduct());
-        DataProductCreateResponse.Builder responseBuilder = DataProductCreateResponse.newBuilder();
-        responseBuilder.setDataProduct(result);
-        responseObserver.onNext(responseBuilder.build());
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void updateDataProduct(DataProductUpdateRequest request, StreamObserver<DataProductUpdateResponse> responseObserver) {
-        DataProduct result = catalogService.updateDataProduct(request.getDataProduct());
-        DataProductUpdateResponse.Builder responseBuilder = DataProductUpdateResponse.newBuilder();
-        responseBuilder.setDataProduct(result);
-        responseObserver.onNext(responseBuilder.build());
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getDataProduct(DataProductGetRequest request, StreamObserver<DataProductGetResponse> responseObserver) {
-        DataProduct result = catalogService.getDataProduct(request.getDataProductUri());
-        DataProductGetResponse.Builder responseBuilder = DataProductGetResponse.newBuilder();
-        responseBuilder.setDataProduct(result);
-        responseObserver.onNext(responseBuilder.build());
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void removeDataProduct(DataProductDeleteRequest request, StreamObserver<DataProductDeleteResponse> responseObserver) {
-        catalogService.deleteDataProduct(request.getDataProductUri());
-        responseObserver.onNext(DataProductDeleteResponse.newBuilder().build());
-        responseObserver.onCompleted();
-    }
 
     @Override
     public void registerReplicaLocation(DataReplicaCreateRequest request, StreamObserver<DataReplicaCreateResponse> responseObserver) {

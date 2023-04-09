@@ -62,23 +62,11 @@ public class DataReplicaLocationEntity implements Serializable {
     @Column(name = "VALID_UNTIL_TIME")
     private Timestamp validUntilTime;
 
-//    @Column(name = "REPLICA_LOCATION_CATEGORY")
-//    @Enumerated(EnumType.STRING)
-//    private ReplicaLocationCategory replicaLocationCategory;
-//
-//    @Column(name = "REPLICA_PERSISTENT_TYPE")
-//    @Enumerated(EnumType.STRING)
-//    private ReplicaPersistentType replicaPersistentType;
-
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "DATA_REPLICA_METADATA", joinColumns = @JoinColumn(name = "REPLICA_ID"))
     @MapKeyColumn(name = "METADATA_KEY")
     @Column(name = "METADATA_VALUE")
     private Map<String, String> replicaMetadata;
-
-    @ManyToOne(targetEntity = DataProductEntity.class)
-    @JoinColumn(name = "PRODUCT_URI", nullable = false, updatable = false, insertable = false)
-    private DataProductEntity dataProduct;
 
     public String getReplicaId() {
         return replicaId;
@@ -152,22 +140,6 @@ public class DataReplicaLocationEntity implements Serializable {
         this.validUntilTime = validUntilTime;
     }
 
-//    public ReplicaLocationCategory getReplicaLocationCategory() {
-//        return replicaLocationCategory;
-//    }
-//
-//    public void setReplicaLocationCategory(ReplicaLocationCategory replicaLocationCategory) {
-//        this.replicaLocationCategory = replicaLocationCategory;
-//    }
-//
-//    public ReplicaPersistentType getReplicaPersistentType() {
-//        return replicaPersistentType;
-//    }
-//
-//    public void setReplicaPersistentType(ReplicaPersistentType replicaPersistentType) {
-//        this.replicaPersistentType = replicaPersistentType;
-//    }
-
     public Map<String, String> getReplicaMetadata() {
         return replicaMetadata;
     }
@@ -176,11 +148,4 @@ public class DataReplicaLocationEntity implements Serializable {
         this.replicaMetadata = replicaMetadata;
     }
 
-    public DataProductEntity getDataProduct() {
-        return dataProduct;
-    }
-
-    public void setDataProduct(DataProductEntity dataProduct) {
-        this.dataProduct = dataProduct;
-    }
 }

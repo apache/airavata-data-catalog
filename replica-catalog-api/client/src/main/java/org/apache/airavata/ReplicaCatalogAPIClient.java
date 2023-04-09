@@ -57,7 +57,7 @@ public class ReplicaCatalogAPIClient {
             Airavata MFT copied a 100GB astrological data file to Amazon S3 bucket
             User can access that S3 bucket data file via Replica catalog details
 
-            1) Register Data Product
+            1) Register Data Product in data catalog
             2) Register Replica Location
             3) Register Location storage details
             4) Register location storage credentials
@@ -67,17 +67,12 @@ public class ReplicaCatalogAPIClient {
         try {
             ReplicaCatalogAPIClient client = new ReplicaCatalogAPIClient(channel);
 
-            DataProduct dataProduct = DataProduct.newBuilder()
-                    .setDataProductType(DataProductType.FILE)
-                    .setProductName("ASTRO")
-                    .setProductUri("613")
-                    .setProductDescription("Astro Data").build();
-            DataProduct productResult = client.createDataProduct(dataProduct);
+            String testUri = "TestUri";
 
             DataReplicaLocation replicaLocation = DataReplicaLocation.newBuilder()
                     .setReplicaName("ASTRO S3")
                     .setReplicaDescription("S3 replica")
-                    .setDataProductId(productResult.getProductUri())
+                    .setDataProductId(testUri)
                     .setCreationTime(System.currentTimeMillis()).build();
             DataReplicaLocation replicaResult = client.createReplicaLocation(replicaLocation);
 
@@ -105,7 +100,9 @@ public class ReplicaCatalogAPIClient {
 
             SecretForStorage secretForStorage = SecretForStorage.newBuilder()
                     .setStorageId(resourceResult.getStorage().getS3Storage().getStorageId())
-                    .setSecretId(secretResult.getSecret().getS3Secret().getSecretId()).setStorageType(StorageType.S3).build();
+                    .setSecretId(secretResult.getSecret().getS3Secret().getSecretId())
+                    .setStorageType(StorageType.S3)
+                    .setUserIdentity("userID#12345").build();
             SecretForStorageCreateRequest createRequest = SecretForStorageCreateRequest.newBuilder().setSecretForStorage(secretForStorage).build();
             SecretForStorage secretForStorageResult = client.createCommonStorage(channel, createRequest);
 
@@ -140,13 +137,6 @@ public class ReplicaCatalogAPIClient {
         } finally {
             channel.shutdownNow().awaitTermination(180, TimeUnit.SECONDS);
         }
-    }
-
-
-    public DataProduct createDataProduct(DataProduct dataProduct) {
-        DataProductCreateRequest request = DataProductCreateRequest.newBuilder().setDataProduct(dataProduct).build();
-        DataProductCreateResponse response = blockingApiStub.registerDataProduct(request);
-        return response.getDataProduct();
     }
 
     public DataReplicaLocation createReplicaLocation(DataReplicaLocation replicaLocation) {

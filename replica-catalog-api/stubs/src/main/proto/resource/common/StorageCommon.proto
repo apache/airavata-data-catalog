@@ -120,8 +120,9 @@ message SecretForStorage {
   string storage_id = 1;
   string secret_id = 2;
   string replica_id = 3;
-  StorageType storage_type = 4;
-  Error error = 5;
+  string user_identity = 4;
+  StorageType storage_type = 5;
+  Error error = 6;
 }
 
 message SecretForStorageCreateRequest {

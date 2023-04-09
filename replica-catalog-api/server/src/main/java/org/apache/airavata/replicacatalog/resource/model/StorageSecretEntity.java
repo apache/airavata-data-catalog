@@ -33,8 +33,6 @@ public class StorageSecretEntity {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
 
-    // Identifier can add here
-
     @Column(name = "STORAGE_ID")
     private String storageId;
 
@@ -43,6 +41,9 @@ public class StorageSecretEntity {
 
     @Column(name = "STORAGE_TYPE")
     private String type;
+
+    @Column(name = "USER_IDENTIFIER")
+    private String userIdentifier;
 
     public String getId() {
         return id;
@@ -74,5 +75,13 @@ public class StorageSecretEntity {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getUserIdentifier() {
+        return userIdentifier;
+    }
+
+    public void setUserIdentifier(String userIdentifier) {
+        this.userIdentifier = userIdentifier;
     }
 }
