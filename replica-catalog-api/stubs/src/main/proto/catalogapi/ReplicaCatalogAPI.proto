@@ -58,11 +58,17 @@ enum Permission {
 }
 
 enum StorageType {
-  LOCAL = 0;
+  NONE = 0;
   S3 = 1;
-  GCS = 2;
-  AZURE = 3;
-
+  FTP = 2;
+  LOCAL = 3;
+  GCS = 4;
+  BOX = 5;
+  DROPBOX = 6;
+  AZURE = 7;
+  SWIFT = 8;
+  ODATA = 9;
+  SCP = 10;
 }
 
 enum DataProductType {
@@ -70,10 +76,21 @@ enum DataProductType {
   COLLECTION = 1;
 }
 
+enum ErrorCode {
+  INVALID_DATA = 0;
+  INTERNAL_ERROR = 1;
+  MAPPING_ERROR = 2;
+}
+
+message Error {
+  ErrorCode code = 1;
+  string message = 2;
+}
+
 // Entity which used to model a replica entry
 message DataReplicaLocation {
   string data_replica_id = 1;             // Unique replica id
-  string data_product_id = 2;             // related data uri
+  string data_product_uri = 2;            // related data uri
   string parent_replica_id = 3;           // If there is parent replica (Like directory structure)
   string storage_resource_id = 4;         // Replica storage id (TO link the storage entry)
   string replica_name = 5;                // Replica user friendly name
@@ -90,6 +107,7 @@ message DataReplicaCreateRequest {
 }
 message DataReplicaCreateResponse{
   DataReplicaLocation data_replica = 1;
+  Error error = 2;
 }
 
 message DataReplicaGroupEntryCreateRequest {
@@ -97,36 +115,41 @@ message DataReplicaGroupEntryCreateRequest {
 }
 message DataReplicaGroupEntryCreateResponse{
   ReplicaGroupEntry data_replica_group = 1;
-}
+  Error error = 2;
 
+}
 
 message DataReplicaUpdateRequest {
   DataReplicaLocation data_replica = 1;
 }
 message DataReplicaUpdateResponse{
   DataReplicaLocation data_replica = 1;
+  Error error = 2;
 }
 message DataReplicaGetRequest {
   string data_replica_id = 1;
 }
 message DataReplicaGetResponse {
   DataReplicaLocation data_replica = 1;
+  Error error = 2;
 }
 message DataReplicaDeleteRequest {
   string data_replica_id = 1;
 }
 message DataReplicaDeleteResponse {
+  Error error = 1;
 }
 
 message AllDataReplicaGetRequest {
-  string data_product_id = 1;
+  string data_product_uri = 1;
   int32 page_number = 2;
   int32 page_size = 3;
 }
 
 message AllDataReplicaGetResponse {
-  string data_product_id = 1;
+  string data_product_uri = 1;
   repeated ReplicaGroupEntry replica_list = 2;
+  Error error = 3;
 }
 
 message ReplicaGroupEntry {
@@ -143,10 +166,11 @@ message ReplicaListEntry {
 }
 
 message AllDataReplicaDeleteRequest {
-  string data_product_id = 1;
+  string data_product_uri = 1;
 }
 
 message AllDataReplicaDeleteResponse{
   int32 replica_location_count = 1;
+  Error error = 2;
 }
 

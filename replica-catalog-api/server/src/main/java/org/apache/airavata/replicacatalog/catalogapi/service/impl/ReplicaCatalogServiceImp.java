@@ -1,9 +1,13 @@
 package org.apache.airavata.replicacatalog.catalogapi.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.transaction.Transactional;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaLocation;
+import org.apache.airavata.replicacatalog.catalog.stubs.ReplicaGroupEntry;
 import org.apache.airavata.replicacatalog.catalogapi.mapper.DataReplicaMapper;
 import org.apache.airavata.replicacatalog.catalogapi.model.DataReplicaLocationEntity;
 import org.apache.airavata.replicacatalog.catalogapi.repository.DataReplicaLocationRepository;
@@ -27,7 +31,7 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
 
 
     @Override
-    public DataReplicaLocation createDataReplica(DataReplicaLocation replicaLocation) {
+    public DataReplicaLocation createDataReplica(DataReplicaLocation replicaLocation) throws Exception{
 
         DataReplicaLocationEntity dataReplicaLocationEntity = new DataReplicaLocationEntity();
 
@@ -44,7 +48,7 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
     }
 
     @Override
-    public DataReplicaLocation updateDataReplica(DataReplicaLocation dataReplicaLocation) {
+    public DataReplicaLocation updateDataReplica(DataReplicaLocation dataReplicaLocation) throws Exception{
 
         DataReplicaLocationEntity dataReplicaLocationEntity = dataReplicaLocationRepository.findByReplicaId(dataReplicaLocation.getDataReplicaId());
         if (dataReplicaLocationEntity == null) {
@@ -56,7 +60,7 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
     }
 
     @Override
-    public DataReplicaLocation getDataReplica(String replicaId) {
+    public DataReplicaLocation getDataReplica(String replicaId) throws Exception {
 
         DataReplicaLocationEntity dataReplicaLocationEntity = dataReplicaLocationRepository.findByReplicaId(replicaId);
         if (dataReplicaLocationEntity == null) {
@@ -66,12 +70,31 @@ public class ReplicaCatalogServiceImp implements IReplicaCatalogService {
     }
 
     @Override
-    public void deleteDataReplica(String replicaId) {
+    public void deleteDataReplica(String replicaId) throws Exception {
         dataReplicaLocationRepository.deleteByReplicaId(replicaId);
     }
 
-
-    private DataReplicaLocation toDataReplicaLocation(DataReplicaLocationEntity savedDataLocationEntity) {
+    @Override
+    public List<ReplicaGroupEntry> getDataReplicas(String productUri) throws Exception{
+        Optional<List<DataReplicaLocationEntity>> dataReplicaLocationEntities = dataReplicaLocationRepository.findByProductUri(productUri);
+        if (!dataReplicaLocationEntities.isPresent() || dataReplicaLocationEntities.get().isEmpty()) {
+            logger.debug("Data Replica Location not exists");
+        }
+        List<ReplicaGroupEntry> dataReplicaLocations = new ArrayList<>();
+        dataReplicaLocationEntities.get().forEach(r -> {
+            ReplicaGroupEntry groupEntry = null;
+            try {
+                groupEntry = ReplicaGroupEntry.newBuilder()
+                        .setDataReplicaId(r.getReplicaId())
+                        .addFiles(toDataReplicaLocation(r)).build();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            dataReplicaLocations.add(groupEntry);
+        });
+        return dataReplicaLocations;
+    }
+    private DataReplicaLocation toDataReplicaLocation(DataReplicaLocationEntity savedDataLocationEntity) throws Exception{
         DataReplicaLocation.Builder builder = DataReplicaLocation.newBuilder();
         replicaMapper.mapEntityToModel(savedDataLocationEntity, builder);
         return builder.build();

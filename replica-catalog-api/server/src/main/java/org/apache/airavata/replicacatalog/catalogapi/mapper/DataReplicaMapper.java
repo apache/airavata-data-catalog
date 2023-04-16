@@ -19,14 +19,11 @@ public class DataReplicaMapper {
     @Autowired
     DataReplicaLocationRepository replicaLocationRepository;
 
-    @Autowired
-
-
     public void mapModelToEntity(DataReplicaLocation model, DataReplicaLocationEntity entity) {
 
         entity.setReplicaName(model.getReplicaName());
         entity.setReplicaId(model.getDataReplicaId());
-        entity.setProductUri(model.getDataProductId());
+        entity.setProductUri(model.getDataProductUri());
         entity.setReplicaDescription(model.getReplicaDescription());
         entity.setCreationTime(new Timestamp(System.currentTimeMillis()));
         // TODO: handle parent data product not found
@@ -39,7 +36,7 @@ public class DataReplicaMapper {
         dataProductBuilder
                 .setDataReplicaId( dataReplicaLocationEntity.getReplicaId() )
                 .setReplicaName( dataReplicaLocationEntity.getReplicaName() )
-                .setDataProductId( dataReplicaLocationEntity.getProductUri() )
+                .setDataProductUri( dataReplicaLocationEntity.getProductUri() )
                 .setCreationTime( dataReplicaLocationEntity.getCreationTime().getTime() );
 
 //        if ( dataReplicaLocationEntity.getDataProduct() != null )

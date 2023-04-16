@@ -51,6 +51,7 @@ under the License.
     <hypersistence.60.version>3.1.1</hypersistence.60.version>
     <jackson.jakarta.version>2.14.1</jackson.jakarta.version>
     <dozer.version>5.5.1</dozer.version>
+    <jupiter.version>5.8.1</jupiter.version>
   </properties>
 
   <dependencies>

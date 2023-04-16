@@ -18,18 +18,24 @@
 package org.apache.airavata.replicacatalog.resource.service;
 
 
+import org.apache.airavata.replicacatalog.exception.InvalidDataException;
+import org.apache.airavata.replicacatalog.exception.StorageNotSupportException;
 import org.apache.airavata.replicacatalog.resource.mapper.ResourceStorageMapper;
 import org.apache.airavata.replicacatalog.resource.model.GenericResourceEntity;
 import org.apache.airavata.replicacatalog.resource.model.ResolveStorageEntity;
-import org.apache.airavata.replicacatalog.resource.model.S3StorageEntity;
+import org.apache.airavata.replicacatalog.resource.model.storage.GCSStorageEntity;
+import org.apache.airavata.replicacatalog.resource.model.storage.S3StorageEntity;
 import org.apache.airavata.replicacatalog.resource.model.StorageSecretEntity;
 import org.apache.airavata.replicacatalog.resource.repository.GenericResourceRepository;
 import org.apache.airavata.replicacatalog.resource.repository.ResolveStorageRepository;
-import org.apache.airavata.replicacatalog.resource.repository.S3StorageRepository;
+import org.apache.airavata.replicacatalog.resource.repository.storage.GCSStorageRepository;
+import org.apache.airavata.replicacatalog.resource.repository.storage.LocalStorageRepository;
+import org.apache.airavata.replicacatalog.resource.repository.storage.S3StorageRepository;
 import org.apache.airavata.replicacatalog.resource.repository.StorageSecretRepository;
 
 import org.apache.airavata.replicacatalog.resource.stubs.common.*;
 import org.apache.airavata.replicacatalog.resource.stubs.common.Error;
+import org.apache.airavata.replicacatalog.resource.stubs.gcs.GCSStorage;
 import org.apache.airavata.replicacatalog.resource.stubs.s3.*;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
@@ -54,6 +60,12 @@ public class SQLResourceService implements IResourceService {
     private S3StorageRepository s3StorageRepository;
 
     @Autowired
+    private GCSStorageRepository gcsStorageRepository;
+
+    @Autowired
+    private LocalStorageRepository localStorageRepository;
+
+    @Autowired
     private StorageSecretRepository resourceSecretRepository;
 
     @Autowired
@@ -74,16 +86,54 @@ public class SQLResourceService implements IResourceService {
 
     @Override
     public GenericResource createGenericResource(GenericResourceCreateRequest request) throws Exception {
-        GenericResourceEntity resourceEntity = new GenericResourceEntity();
 
-        S3Storage storage = null;
-        if (request.getStorageType() == StorageType.S3) {
-            storage = createS3Storage(request.getResource().getStorage().getS3Storage());
+        StorageType storageType = null;
+        switch (request.getResource().getStorage().getStorageCase().getNumber()) {
+            case StorageWrapper.S3STORAGE_FIELD_NUMBER:
+                storageType = StorageType.S3;
+                break;
+            case StorageWrapper.LOCALSTORAGE_FIELD_NUMBER:
+                storageType = StorageType.LOCAL;
+                break;
+            case StorageWrapper.GCSSTORAGE_FIELD_NUMBER:
+                storageType = StorageType.GCS;
+                break;
+            case StorageWrapper.FTPSTORAGE_FIELD_NUMBER:
+                storageType = StorageType.FTP;
+                break;
+            default:
+                break;
         }
-        StorageWrapper wrapper = StorageWrapper.newBuilder().setS3Storage(storage).build();
+
+
+        GenericResourceEntity resourceEntity = new GenericResourceEntity();
+        String storageId = "";
+        StorageWrapper wrapper = null;
+        if (storageType == StorageType.S3) {
+            S3Storage storage = createS3Storage(request.getResource().getStorage().getS3Storage());
+            if (storage != null) {
+                storageId = storage.getStorageId();
+                wrapper = StorageWrapper.newBuilder().setS3Storage(storage).build();
+            }
+
+        } else if (storageType == StorageType.GCS) {
+            GCSStorage storage = createGCSStorage(request.getResource().getStorage().getGcsStorage());
+            if (storage != null) {
+                storageId = storage.getStorageId();
+                wrapper = StorageWrapper.newBuilder().setGcsStorage(storage).build();
+            }
+
+        } else {
+            throw new StorageNotSupportException( "Storage type not supported/implemented");
+        }
+
+        if (wrapper == null) {
+            throw new InvalidDataException("Storage not created.");
+        }
+
         resourceEntity.setResourceId(UUID.randomUUID().toString());
         resourceStorageMapper.mapGenericStorageModelToEntity(request.getResource(), resourceEntity);
-        resourceEntity.setStorageId(storage.getStorageId());
+        resourceEntity.setStorageId(storageId);
         GenericResourceEntity savedDataProductEntity = resourceRepository.save(resourceEntity);
 
         GenericResource.Builder responseBuilder = GenericResource.newBuilder();
@@ -104,13 +154,20 @@ public class SQLResourceService implements IResourceService {
             return null;
         }
         GenericResourceEntity resourceEntity = savedGenericResourceEntityList.get();
-        Optional<S3StorageEntity> storage = Optional.empty();
         StorageWrapper wrapper = null;
         if (StorageType.S3.name().equals(resourceEntity.getStorageType().name())) {
+            Optional<S3StorageEntity> storage = Optional.empty();
             storage = s3StorageRepository.findById(resourceEntity.getStorageId());
             if (storage.isPresent()) {
                 S3Storage s3 = mapper.map(storage.get(), S3Storage.newBuilder().getClass()).build();
                 wrapper = StorageWrapper.newBuilder().setS3Storage(s3).build();
+            }
+        } else if (StorageType.GCS.name().equals(resourceEntity.getStorageType().name())) {
+            Optional<GCSStorageEntity> storage = Optional.empty();
+            storage = gcsStorageRepository.findById(resourceEntity.getStorageId());
+            if (storage.isPresent()) {
+                GCSStorage gcs = mapper.map(storage.get(), GCSStorage.newBuilder().getClass()).build();
+                wrapper = StorageWrapper.newBuilder().setGcsStorage(gcs).build();
             }
         }
 
@@ -136,9 +193,9 @@ public class SQLResourceService implements IResourceService {
             return null;
         }
         GenericResourceEntity resourceEntity = savedGenericResourceEntityList.get();
-        Optional<S3StorageEntity> storage = null;
         StorageWrapper wrapper = null;
         if (StorageType.S3.name().equals(resourceEntity.getStorageType().name() )) {
+            Optional<S3StorageEntity> storage = null;
             storage = s3StorageRepository.findById(resourceEntity.getStorageId());
             if (storage.isPresent()) {
                 boolean updated = updateS3Storage(storage.get(), request.getGenericResource().getStorage().getS3Storage());
@@ -147,8 +204,17 @@ public class SQLResourceService implements IResourceService {
                     wrapper = StorageWrapper.newBuilder().setS3Storage(s3).build();
                 }
             }
+        } else if (StorageType.GCS.name().equals(resourceEntity.getStorageType().name())) {
+            Optional<GCSStorageEntity> storage = null;
+            storage = gcsStorageRepository.findById(resourceEntity.getStorageId());
+            if (storage.isPresent()) {
+                boolean updated = updateGCSStorage(storage.get(), request.getGenericResource().getStorage().getGcsStorage());
+                if (updated) {
+                    GCSStorage gcs = mapper.map(storage.get(), GCSStorage.newBuilder().getClass()).build();
+                    wrapper = StorageWrapper.newBuilder().setGcsStorage(gcs).build();
+                }
+            }
         }
-
         resourceStorageMapper.mapGenericStorageModelToEntity(request.getGenericResource(), resourceEntity);
 
         GenericResourceEntity savedDataProductEntity = resourceRepository.save(resourceEntity);
@@ -172,6 +238,7 @@ public class SQLResourceService implements IResourceService {
             StorageSecretEntity storageSecretEntity = resourceSecEtyOp.get();
             resultBuilder.setSecretId(storageSecretEntity.getSecretId());
             resultBuilder.setStorageId(storageSecretEntity.getStorageId());
+            resultBuilder.setStorageType(resourceStorageMapper.resolveStorage( storageSecretEntity.getType()));
         } else {
             resultBuilder.setError(Error.NOT_FOUND);
         }
@@ -294,6 +361,26 @@ public class SQLResourceService implements IResourceService {
         return true;
     }
 
+
+    public GCSStorage createGCSStorage(GCSStorage request) throws Exception {
+        GCSStorageEntity savedEntity = gcsStorageRepository.save(mapper.map(request, GCSStorageEntity.class));
+
+        ResolveStorageEntity storageTypeEty = new ResolveStorageEntity();
+        storageTypeEty.setStorageId(savedEntity.getStorageId());
+        storageTypeEty.setStorageType(ResolveStorageEntity.StorageType.GCS);
+        storageTypeEty.setStorageName(savedEntity.getName());
+        resolveStorageRepository.save(storageTypeEty);
+
+        return mapper.map(savedEntity, GCSStorage.newBuilder().getClass()).build();
+    }
+
+
+    public boolean updateGCSStorage(GCSStorageEntity entity, GCSStorage storage) throws Exception {
+        entity.setName(storage.getName());
+        entity.setBucketName(storage.getBucketName());
+        gcsStorageRepository.save(entity);
+        return true;
+    }
 
     @Override
     public StorageTypeResolveResponse resolveStorageType(StorageTypeResolveRequest request) throws Exception {

@@ -20,6 +20,9 @@
  */
 package org.apache.airavata.replicacatalog.catalogapi.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.airavata.replicacatalog.catalogapi.model.DataReplicaLocationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 public interface DataReplicaLocationRepository extends JpaRepository<DataReplicaLocationEntity, String> {
 
     DataReplicaLocationEntity findByReplicaId(String replicaId);
+
+    Optional<List<DataReplicaLocationEntity>> findByProductUri(String replicaId);
 
     @Transactional
     void deleteByReplicaId(String replicaId);

@@ -19,9 +19,12 @@ package org.apache.airavata.replicacatalog.sceret.service;
 
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
 import org.apache.airavata.replicacatalog.sceret.mapper.ResourceSecretMapper;
+import org.apache.airavata.replicacatalog.sceret.model.GCSSecretEntity;
 import org.apache.airavata.replicacatalog.sceret.model.S3SecretEntity;
+import org.apache.airavata.replicacatalog.sceret.repository.GCSSecretRepository;
 import org.apache.airavata.replicacatalog.sceret.repository.S3SecretRepository;
 import org.apache.airavata.replicacatalog.secret.stubs.common.*;
+import org.apache.airavata.replicacatalog.secret.stubs.gcs.GCSSecret;
 import org.apache.airavata.replicacatalog.secret.stubs.s3.*;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
@@ -42,6 +45,9 @@ public class SQLSecretService implements ISecretService {
 
     @Autowired
     private S3SecretRepository s3SecretRepository;
+
+    @Autowired
+    private GCSSecretRepository gcsSecretRepository;
 
     private DozerBeanMapper mapper = new DozerBeanMapper();
 
@@ -64,9 +70,12 @@ public class SQLSecretService implements ISecretService {
     public StorageSecret registerSecretForStorage(SecretCreateRequest request) throws Exception {
         StorageSecret stoReq = request.getSecret();
         StorageSecret.Builder storageSecret = StorageSecret.newBuilder();
-        if (stoReq.getStorageType().name().equals(StorageType.S3.name())) {
-            S3Secret secret= createS3Secret(stoReq.getSecret().getS3Secret());
-            return storageSecret.setSecret(SecretWrapper.newBuilder().setS3Secret( secret )).setSecretId(secret.getSecretId()).build();
+        if (StorageType.S3.name().equals(stoReq.getStorageType().name())) {
+            S3Secret secret = createS3Secret(stoReq.getSecret().getS3Secret());
+            return storageSecret.setSecret(SecretWrapper.newBuilder().setS3Secret(secret)).setSecretId(secret.getSecretId()).build();
+        } else if (StorageType.GCS.name().equals(stoReq.getStorageType().name())) {
+            GCSSecret secret = createGCSSecret(stoReq.getSecret().getGcsSecret());
+            return storageSecret.setSecret(SecretWrapper.newBuilder().setGcsSecret(secret)).setSecretId(secret.getSecretId()).build();
         }
         return null;
     }
@@ -105,6 +114,12 @@ public class SQLSecretService implements ISecretService {
     public boolean deleteS3Secret(S3SecretDeleteRequest request) throws Exception {
         s3SecretRepository.deleteById(request.getSecretId());
         return true;
+    }
+
+
+    public GCSSecret createGCSSecret(GCSSecret request) throws Exception {
+        GCSSecretEntity savedEntity = gcsSecretRepository.save(mapper.map(request, GCSSecretEntity.class));
+        return mapper.map(savedEntity, GCSSecret.newBuilder().getClass()).build();
     }
 
 }

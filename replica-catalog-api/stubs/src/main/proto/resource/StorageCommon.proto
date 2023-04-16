@@ -20,7 +20,10 @@ syntax = "proto3";
 option java_multiple_files = true;
 package org.apache.airavata.replicacatalog.resource.stubs.common;
 
-import "resource/s3/S3Storage.proto";
+import "resource/S3Storage.proto";
+import "resource/FTPStorage.proto";
+import "resource/LocalStorage.proto";
+import "resource/GCSStorage.proto";
 
 
 enum StorageType {
@@ -78,6 +81,9 @@ message GenericResource {
 message StorageWrapper {
   oneof storage {
     org.apache.airavata.replicacatalog.resource.stubs.s3.S3Storage s3Storage = 1;
+    org.apache.airavata.replicacatalog.resource.stubs.local.LocalStorage localStorage = 2;
+    org.apache.airavata.replicacatalog.resource.stubs.gcs.GCSStorage gcsStorage = 3;
+    org.apache.airavata.replicacatalog.resource.stubs.ftp.FTPStorage ftpStorage = 4;
   }
 }
 
@@ -89,7 +95,6 @@ message GenericResourceGetRequest {
 message GenericResourceCreateRequest {
   string storage_id = 1;
   GenericResource resource = 2;
-  StorageType storage_type = 3;
 }
 
 message GenericResourceUpdateRequest {

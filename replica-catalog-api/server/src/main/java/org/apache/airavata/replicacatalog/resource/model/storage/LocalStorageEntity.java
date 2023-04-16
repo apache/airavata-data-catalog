@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.airavata.replicacatalog.resource.model;
+package org.apache.airavata.replicacatalog.resource.model.storage;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,29 +26,19 @@ import org.hibernate.annotations.GenericGenerator;
 
 
 @Entity
-@Table(name = "S3_STORAGE")
-public class S3StorageEntity {
+@Table(name = "LOCAL_STORAGE")
+public class LocalStorageEntity {
 
     @Id
     @Column(name = "STORAGE_ID")
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String storageId;
-
     @Column(name = "STORAGE_NAME")
     private String name;
 
-    @Column(name = "BUCKET_NAME")
-    private String bucketName;
-
-    @Column(name = "REGION")
-    private String region;
-
-    @Column(name = "ENDPOINT")
-    private String endpoint;
-
-    @Column(name = "USE_TLS")
-    private boolean useTLS;
+    @Column(name = "AGENT_ID")
+    private String agentId;
 
     public String getStorageId() {
         return storageId;
@@ -58,43 +48,19 @@ public class S3StorageEntity {
         this.storageId = storageId;
     }
 
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public boolean isUseTLS() {
-        return useTLS;
-    }
-
-    public void setUseTLS(boolean useTLS) {
-        this.useTLS = useTLS;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 }
