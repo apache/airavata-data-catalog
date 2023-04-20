@@ -14,6 +14,7 @@ import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaCreateRespons
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaGetRequest;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaGetResponse;
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaLocation;
+import org.apache.airavata.replicacatalog.catalog.stubs.StorageType;
 import org.apache.airavata.replicacatalog.resource.stubs.common.FileResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceCreateRequest;
@@ -21,11 +22,11 @@ import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResourceG
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorage;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageCreateRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageGetRequest;
-import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageWrapper;
 import org.apache.airavata.replicacatalog.resource.stubs.gcs.GCSStorage;
 import org.apache.airavata.replicacatalog.resource.stubs.s3.S3Storage;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretCreateRequest;
+import org.apache.airavata.replicacatalog.secret.stubs.common.SecretGetRequest;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretWrapper;
 import org.apache.airavata.replicacatalog.secret.stubs.common.StorageSecret;
 import org.apache.airavata.replicacatalog.secret.stubs.gcs.GCSSecret;
@@ -81,7 +82,7 @@ class ReplicaCatalogAPIClientTest {
                     .setSessionToken("token").build();
             StorageSecret storageSecret = StorageSecret.newBuilder()
                     .setSecret(SecretWrapper.newBuilder().setS3Secret(secret).build())
-                    .setStorageType(org.apache.airavata.replicacatalog.secret.stubs.common.StorageType.S3).build();
+                    .setStorageType(StorageType.S3).build();
             SecretCreateRequest secretCreateRequest = SecretCreateRequest.newBuilder().setSecret(storageSecret).build();
             StorageSecret secretResult = createSecret(client, channel, secretCreateRequest);
 
@@ -117,7 +118,7 @@ class ReplicaCatalogAPIClientTest {
                     .setProjectId("1258").build();
             StorageSecret storageSecret2 = StorageSecret.newBuilder()
                     .setSecret(SecretWrapper.newBuilder().setGcsSecret(gcsSecret).build())
-                    .setStorageType(org.apache.airavata.replicacatalog.secret.stubs.common.StorageType.GCS).build();
+                    .setStorageType(StorageType.GCS).build();
             SecretCreateRequest secretCreateRequest2 = SecretCreateRequest.newBuilder().setSecret(storageSecret2).build();
             StorageSecret secretResult2 = createSecret(client, channel, secretCreateRequest2);
 
@@ -145,24 +146,33 @@ class ReplicaCatalogAPIClientTest {
 
             replicas.getReplicaListList().forEach(r -> {
 
-                        DataReplicaGetRequest replicaGetRequest = DataReplicaGetRequest.newBuilder().setDataReplicaId(r.getDataReplicaId()).build();
-                        DataReplicaGetResponse replicaResponse = client.getReplicaServiceAPI().getReplicaLocation(replicaGetRequest);
-                        if (replicaResponse != null) {
-                            SecretForStorage secretForStorage1 = null;
-                            try {
-                                secretForStorage1 = getStorageSecretIds(client, channel, replicaResponse.getDataReplica().getDataReplicaId());
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                            if (secretForStorage1 != null) {
-                                System.out.println(
-                                        MessageFormat.format("Loaded data replica with id [{0}], Storage id [{1}], Secret id [{2}] Storage Type [{3}]",
-                                                (Object[]) new String[]{replicaResponse.getDataReplica().getDataReplicaId(), secretForStorage1.getStorageId(), secretForStorage1.getSecretId(),
-                                                        secretForStorage1.getStorageType().name()}));
+                DataReplicaGetRequest replicaGetRequest = DataReplicaGetRequest.newBuilder().setDataReplicaId(r.getDataReplicaId()).build();
+                DataReplicaGetResponse replicaResponse = client.getReplicaServiceAPI().getReplicaLocation(replicaGetRequest);
+                if (replicaResponse != null) {
+                    SecretForStorage secretForStorage1 = null;
+                    try {
+                        secretForStorage1 = getStorageSecretIds(client, channel, replicaResponse.getDataReplica().getDataReplicaId());
+                        SecretGetRequest secretGetRequest  = SecretGetRequest.newBuilder().setSecretId(secretForStorage1.getSecretId()).setStorageType(secretForStorage1.getStorageType()).build();
+                        StorageSecret secretLoad = client.getBlockingSecretStub(channel).getSecret(secretGetRequest);
+                        System.out.println(secretLoad);
 
-                            }
-                        }
+
+                        GenericResourceGetRequest genericResourceGetRequest = GenericResourceGetRequest.newBuilder().setReplicaId(replicaResponse.getDataReplica().getDataReplicaId()).build();
+                        GenericResource resource1 = client.getBlockingStorageStub(channel).getGenericResource(genericResourceGetRequest);
+                        System.out.println(resource1);
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
+                    if (secretForStorage1 != null) {
+                        System.out.println(
+                                MessageFormat.format("Loaded data replica with id [{0}], Storage id [{1}], Secret id [{2}] Storage Type [{3}]",
+                                        (Object[]) new String[]{replicaResponse.getDataReplica().getDataReplicaId(), secretForStorage1.getStorageId(), secretForStorage1.getSecretId(),
+                                                secretForStorage1.getStorageType().name()}));
+
+                    }
+                }
+            }
 
             );
 

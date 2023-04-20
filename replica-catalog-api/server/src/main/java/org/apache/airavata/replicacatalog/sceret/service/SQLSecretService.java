@@ -17,7 +17,7 @@
 
 package org.apache.airavata.replicacatalog.sceret.service;
 
-import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
+import org.apache.airavata.replicacatalog.catalog.stubs.StorageType;
 import org.apache.airavata.replicacatalog.sceret.mapper.ResourceSecretMapper;
 import org.apache.airavata.replicacatalog.sceret.model.GCSSecretEntity;
 import org.apache.airavata.replicacatalog.sceret.model.S3SecretEntity;
@@ -25,6 +25,7 @@ import org.apache.airavata.replicacatalog.sceret.repository.GCSSecretRepository;
 import org.apache.airavata.replicacatalog.sceret.repository.S3SecretRepository;
 import org.apache.airavata.replicacatalog.secret.stubs.common.*;
 import org.apache.airavata.replicacatalog.secret.stubs.gcs.GCSSecret;
+import org.apache.airavata.replicacatalog.secret.stubs.gcs.GCSSecretGetRequest;
 import org.apache.airavata.replicacatalog.secret.stubs.s3.*;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
@@ -62,8 +63,20 @@ public class SQLSecretService implements ISecretService {
     }
 
     @Override
-    public StorageSecret getSecretForStorage(SecretGetRequest request) throws Exception {
+    public StorageSecret getSecret(SecretGetRequest request) throws Exception {
+        String id = request.getSecretId();
+        StorageSecret.Builder storageSecret = StorageSecret.newBuilder();
+        if (StorageType.S3.name().equals(request.getStorageType().name())) {
+            S3SecretGetRequest getRequest = S3SecretGetRequest.newBuilder().setSecretId(id).build();
+            Optional<S3Secret> secret = getS3Secret(getRequest);
+            return storageSecret.setSecret(SecretWrapper.newBuilder().setS3Secret(secret.get())).setSecretId(id).build();
+        } else if (StorageType.GCS.name().equals(request.getStorageType().name())) {
+            GCSSecretGetRequest getRequest = GCSSecretGetRequest.newBuilder().setSecretId(id).build();
+            Optional<GCSSecret> secret = getGCSSecret(getRequest);
+            return storageSecret.setSecret(SecretWrapper.newBuilder().setGcsSecret(secret.get())).setSecretId(id).build();
+        }
         return null;
+
     }
 
     @Override
@@ -81,17 +94,17 @@ public class SQLSecretService implements ISecretService {
     }
 
     @Override
-    public boolean deleteSecretForStorage(SecretDeleteRequest request) throws Exception {
+    public boolean deleteSecret(SecretDeleteRequest request) throws Exception {
         return false;
     }
 
     @Override
-    public SecretListResponse searchStorages(SecretSearchRequest request) throws Exception {
+    public SecretListResponse searchSecrets(SecretSearchRequest request) throws Exception {
         return null;
     }
 
     @Override
-    public SecretListResponse listStorage(SecretListRequest request) throws Exception {
+    public SecretListResponse listSecrets(SecretListRequest request) throws Exception {
         return null;
     }
 
@@ -122,4 +135,8 @@ public class SQLSecretService implements ISecretService {
         return mapper.map(savedEntity, GCSSecret.newBuilder().getClass()).build();
     }
 
+    public Optional<GCSSecret> getGCSSecret(GCSSecretGetRequest request) throws Exception {
+        Optional<GCSSecretEntity> secretEty = gcsSecretRepository.findBySecretId(request.getSecretId());
+        return secretEty.map(entity -> mapper.map(entity, GCSSecret.newBuilder().getClass()).build());
+    }
 }

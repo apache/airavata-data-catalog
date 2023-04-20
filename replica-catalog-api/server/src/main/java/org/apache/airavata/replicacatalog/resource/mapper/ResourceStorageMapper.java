@@ -1,13 +1,13 @@
 package org.apache.airavata.replicacatalog.resource.mapper;
 
 import org.apache.airavata.replicacatalog.catalog.stubs.DataReplicaLocation;
+import org.apache.airavata.replicacatalog.catalog.stubs.StorageType;
 import org.apache.airavata.replicacatalog.catalogapi.model.DataReplicaLocationEntity;
 import org.apache.airavata.replicacatalog.resource.model.GenericResourceEntity;
 import org.apache.airavata.replicacatalog.resource.model.StorageSecretEntity;
 import org.apache.airavata.replicacatalog.resource.repository.GenericResourceRepository;
 import org.apache.airavata.replicacatalog.resource.stubs.common.GenericResource;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorage;
-import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

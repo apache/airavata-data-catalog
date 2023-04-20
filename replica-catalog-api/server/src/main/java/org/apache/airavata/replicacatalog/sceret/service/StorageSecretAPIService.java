@@ -8,6 +8,7 @@ import org.apache.airavata.replicacatalog.sceret.mapper.ResourceSecretMapper;
 import org.apache.airavata.replicacatalog.sceret.repository.S3SecretRepository;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretCommonServiceGrpc;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretCreateRequest;
+import org.apache.airavata.replicacatalog.secret.stubs.common.SecretGetRequest;
 import org.apache.airavata.replicacatalog.secret.stubs.common.StorageSecret;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
@@ -36,6 +37,18 @@ public class StorageSecretAPIService extends SecretCommonServiceGrpc.SecretCommo
             throw new RuntimeException(e);
         }
 
+        responseObserver.onNext(secretResult);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getSecret(SecretGetRequest request, StreamObserver<StorageSecret> responseObserver) {
+        StorageSecret secretResult = null;
+        try {
+            secretResult = secretService.getSecret(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         responseObserver.onNext(secretResult);
         responseObserver.onCompleted();
     }

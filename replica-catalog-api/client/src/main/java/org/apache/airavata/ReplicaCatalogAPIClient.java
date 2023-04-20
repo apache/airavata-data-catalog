@@ -16,7 +16,6 @@ import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorage
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageCreateRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.SecretForStorageGetRequest;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageCommonServiceGrpc;
-import org.apache.airavata.replicacatalog.resource.stubs.common.StorageType;
 import org.apache.airavata.replicacatalog.resource.stubs.common.StorageWrapper;
 import org.apache.airavata.replicacatalog.resource.stubs.s3.S3Storage;
 import org.apache.airavata.replicacatalog.secret.stubs.common.SecretCommonServiceGrpc;
@@ -101,7 +100,7 @@ public class ReplicaCatalogAPIClient {
                     .setSessionToken("token").build();
             StorageSecret storageSecret = StorageSecret.newBuilder()
                     .setSecret(SecretWrapper.newBuilder().setS3Secret(secret).build())
-                    .setStorageType(org.apache.airavata.replicacatalog.secret.stubs.common.StorageType.S3).build();
+                    .setStorageType(StorageType.S3).build();
             SecretCreateRequest secretCreateRequest = SecretCreateRequest.newBuilder().setSecret(storageSecret).build();
             StorageSecret secretResult = client.createSecret(channel, secretCreateRequest);
 

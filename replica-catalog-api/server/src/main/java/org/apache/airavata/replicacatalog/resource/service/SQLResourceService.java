@@ -18,6 +18,7 @@
 package org.apache.airavata.replicacatalog.resource.service;
 
 
+import org.apache.airavata.replicacatalog.catalog.stubs.StorageType;
 import org.apache.airavata.replicacatalog.exception.InvalidDataException;
 import org.apache.airavata.replicacatalog.exception.StorageNotSupportException;
 import org.apache.airavata.replicacatalog.resource.mapper.ResourceStorageMapper;

@@ -26,11 +26,11 @@ public interface ISecretService {
     public void init();
     public void destroy();
 
-    public StorageSecret getSecretForStorage(SecretGetRequest request) throws Exception;
+    public StorageSecret getSecret(SecretGetRequest request) throws Exception;
     public StorageSecret registerSecretForStorage(SecretCreateRequest request) throws Exception;
-    public boolean deleteSecretForStorage(SecretDeleteRequest request) throws Exception;
-    public SecretListResponse searchStorages(SecretSearchRequest request) throws Exception;
-    public SecretListResponse listStorage(SecretListRequest request) throws Exception;
+    public boolean deleteSecret(SecretDeleteRequest request) throws Exception;
+    public SecretListResponse searchSecrets(SecretSearchRequest request) throws Exception;
+    public SecretListResponse listSecrets(SecretListRequest request) throws Exception;
 
 //    public Optional<org.apache.airavata.replicacatalog.secret.stubs.s3.S3Secret> getS3Secret(org.apache.airavata.replicacatalog.secret.stubs.s3.S3SecretGetRequest request) throws Exception;
 //    public org.apache.airavata.replicacatalog.secret.stubs.s3.S3Secret createS3Secret(org.apache.airavata.replicacatalog.secret.stubs.s3.S3SecretCreateRequest request) throws Exception;
