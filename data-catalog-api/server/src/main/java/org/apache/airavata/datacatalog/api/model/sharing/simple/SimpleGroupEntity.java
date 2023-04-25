@@ -75,6 +75,14 @@ public class SimpleGroupEntity {
         this.simpleTenant = simpleTenant;
     }
 
+    public Set<SimpleUserEntity> getMemberUsers() {
+        return memberUsers;
+    }
+
+    public void setMemberUsers(Set<SimpleUserEntity> memberUsers) {
+        this.memberUsers = memberUsers;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

@@ -9,4 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SimpleUserRepository extends JpaRepository<SimpleUserEntity, Long> {
 
     Optional<SimpleUserEntity> findByExternalIdAndSimpleTenant(String externalId, SimpleTenantEntity simpleTenant);
+
+    Optional<SimpleUserEntity> findByExternalIdAndSimpleTenant_ExternalId(String externalId,
+            String tenantId);
 }
