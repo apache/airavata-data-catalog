@@ -67,7 +67,7 @@ public class SimpleSharingManagerImpl implements SharingManager {
 
     @Override
     public void initialize(String tenantId) throws SharingException {
-        // TODO: create a public group for the tenantId
+        // Nothing to do
     }
 
     @Override
