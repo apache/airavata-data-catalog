@@ -11,27 +11,23 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
+// TODO: not needed?
 // TODO: need a unique constraint on (tenant, externalId)
 @Entity
-// 'user' is a reserved word, so naming this table 'user_table'
-@Table(name = "user_table")
-public class UserEntity {
+@Table(name = "user_group")
+public class GroupEntity {
 
     @Id
-    @SequenceGenerator(name = "user_user_id_seq", sequenceName = "user_user_id_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_user_id_seq")
-    @Column(name = "user_id")
-    private Long userId;
+    @SequenceGenerator(name = "user_group_group_id", sequenceName = "user_group_group_id", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_group_group_id")
+    @Column(name = "group_id")
+    private Long groupId;
 
-    /**
-     * The identifier for the user. This external identifier comes from the user
-     * management service that data catalog is configured to use.
-     */
     @Basic
     @Column(name = "external_id", nullable = false)
     private String externalId;
-
     @Basic
+
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -39,12 +35,12 @@ public class UserEntity {
     @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false, updatable = false)
     private TenantEntity tenant;
 
-    public Long getUserId() {
-        return userId;
+    public Long getGroupId() {
+        return groupId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setGroupId(Long groupId) {
+        this.groupId = groupId;
     }
 
     public String getExternalId() {
@@ -75,7 +71,7 @@ public class UserEntity {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+        result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
         return result;
     }
 
@@ -87,11 +83,11 @@ public class UserEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        UserEntity other = (UserEntity) obj;
-        if (userId == null) {
-            if (other.userId != null)
+        GroupEntity other = (GroupEntity) obj;
+        if (groupId == null) {
+            if (other.groupId != null)
                 return false;
-        } else if (!userId.equals(other.userId))
+        } else if (!groupId.equals(other.groupId))
             return false;
         return true;
     }

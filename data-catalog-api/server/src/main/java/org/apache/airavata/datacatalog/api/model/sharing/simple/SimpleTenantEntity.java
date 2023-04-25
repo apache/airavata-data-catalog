@@ -1,4 +1,6 @@
-package org.apache.airavata.datacatalog.api.model;
+package org.apache.airavata.datacatalog.api.model.sharing.simple;
+
+import org.apache.airavata.datacatalog.api.model.TenantEntity;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -11,22 +13,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
-// TODO: need a unique constraint on (tenant, externalId)
 @Entity
-// 'user' is a reserved word, so naming this table 'user_table'
-@Table(name = "user_table")
-public class UserEntity {
+@Table(name = "simple_tenant")
+public class SimpleTenantEntity {
 
     @Id
-    @SequenceGenerator(name = "user_user_id_seq", sequenceName = "user_user_id_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_user_id_seq")
-    @Column(name = "user_id")
-    private Long userId;
+    @SequenceGenerator(name = "simple_tenant_simple_tenant_id_seq", sequenceName = "simple_tenant_simple_tenant_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "simple_tenant_simple_tenant_id_seq")
+    @Column(name = "simple_tenant_id")
+    private Long simpleTenantId;
 
-    /**
-     * The identifier for the user. This external identifier comes from the user
-     * management service that data catalog is configured to use.
-     */
     @Basic
     @Column(name = "external_id", nullable = false)
     private String externalId;
@@ -36,15 +32,15 @@ public class UserEntity {
     private String name;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false, updatable = false)
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
     private TenantEntity tenant;
 
-    public Long getUserId() {
-        return userId;
+    public Long getSimpleTenantId() {
+        return simpleTenantId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setSimpleTenantId(Long simpleTenantId) {
+        this.simpleTenantId = simpleTenantId;
     }
 
     public String getExternalId() {
@@ -75,7 +71,7 @@ public class UserEntity {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+        result = prime * result + ((simpleTenantId == null) ? 0 : simpleTenantId.hashCode());
         return result;
     }
 
@@ -87,11 +83,11 @@ public class UserEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        UserEntity other = (UserEntity) obj;
-        if (userId == null) {
-            if (other.userId != null)
+        SimpleTenantEntity other = (SimpleTenantEntity) obj;
+        if (simpleTenantId == null) {
+            if (other.simpleTenantId != null)
                 return false;
-        } else if (!userId.equals(other.userId))
+        } else if (!simpleTenantId.equals(other.simpleTenantId))
             return false;
         return true;
     }
