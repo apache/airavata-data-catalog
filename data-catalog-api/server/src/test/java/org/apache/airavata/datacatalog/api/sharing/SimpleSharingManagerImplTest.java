@@ -320,4 +320,107 @@ public class SimpleSharingManagerImplTest {
 
         assertFalse(simpleSharingManagerImpl.hasPublicAccess(dataProduct, Permission.READ));
     }
+
+    @Test
+    public void testUserHasAccessViaCascade() throws SharingException {
+
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userA").build();
+        UserEntity testUserA = simpleSharingManagerImpl.resolveUser(userA);
+        UserInfo userB = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userB").build();
+
+        DataProductEntity dp1 = new DataProductEntity();
+        dp1.setExternalId(UUID.randomUUID().toString());
+        dp1.setOwner(testUserA);
+        dp1.setName("test data product 1");
+        dataProductRepository.save(dp1);
+
+        DataProductEntity dp2 = new DataProductEntity();
+        dp2.setExternalId(UUID.randomUUID().toString());
+        dp2.setOwner(testUserA);
+        dp2.setName("test data product 2");
+        dp2.setParentDataProductEntity(dp1);
+        dataProductRepository.save(dp2);
+
+        DataProductEntity dp3 = new DataProductEntity();
+        dp3.setExternalId(UUID.randomUUID().toString());
+        dp3.setOwner(testUserA);
+        dp3.setName("test data product 3");
+        dp3.setParentDataProductEntity(dp2);
+        dataProductRepository.save(dp3);
+
+        // Check that userB doesn't have READ access to the data products 1, 2 or 3
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dp1.getExternalId()) // only need the data product id
+                .build();
+        assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ));
+
+        // Grant READ access to userB for the data product
+        simpleSharingManagerImpl.grantPermissionToUser(userB, dataProduct, Permission.READ, userA);
+
+        // Check that userB does now have READ access to the data product 1, 2 and 3
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ));
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB,
+                DataProduct.newBuilder().setDataProductId(dp2.getExternalId()).build(), Permission.READ));
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB,
+                DataProduct.newBuilder().setDataProductId(dp3.getExternalId()).build(), Permission.READ));
+    }
+
+    @Test
+    public void testUserHasAccessViaGroupMembershipAndCascade() throws SharingException {
+
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userA").build();
+        UserEntity testUserA = simpleSharingManagerImpl.resolveUser(userA);
+        UserInfo userB = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userB").build();
+
+        GroupInfo testGroup = GroupInfo.newBuilder().setGroupId("groupId").setTenantId("tenantId").build();
+
+        // Create data products
+        DataProductEntity dp1 = new DataProductEntity();
+        dp1.setExternalId(UUID.randomUUID().toString());
+        dp1.setOwner(testUserA);
+        dp1.setName("test data product 1");
+        dataProductRepository.save(dp1);
+
+        DataProductEntity dp2 = new DataProductEntity();
+        dp2.setExternalId(UUID.randomUUID().toString());
+        dp2.setOwner(testUserA);
+        dp2.setName("test data product 2");
+        dp2.setParentDataProductEntity(dp1);
+        dataProductRepository.save(dp2);
+
+        DataProductEntity dp3 = new DataProductEntity();
+        dp3.setExternalId(UUID.randomUUID().toString());
+        dp3.setOwner(testUserA);
+        dp3.setName("test data product 3");
+        dp3.setParentDataProductEntity(dp2);
+        dataProductRepository.save(dp3);
+
+        // Add user B to the testGroup
+        simpleSharingManagerImpl.resolveUser(userB);
+        Optional<SimpleUserEntity> userBEntity = simpleUserRepository
+                .findByExternalIdAndSimpleTenant_ExternalId(userB.getUserId(), userB.getTenantId());
+        assertTrue(userBEntity.isPresent());
+        SimpleGroupEntity testGroupEntity = new SimpleGroupEntity();
+        testGroupEntity.setName(testGroup.getGroupId());
+        testGroupEntity.setExternalId(testGroup.getGroupId());
+        testGroupEntity.getMemberUsers().addAll(Arrays.asList(userBEntity.get()));
+        testGroupEntity.setSimpleTenant(userBEntity.get().getSimpleTenant());
+        simpleGroupRepository.save(testGroupEntity);
+
+        // Check that user B doesn't have READ access to the data product
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dp1.getExternalId()) // only need the data product id
+                .build();
+        assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ));
+
+        // Grant READ access to testGroup for the data product
+        simpleSharingManagerImpl.grantPermissionToGroup(testGroup, dataProduct, Permission.READ, userA);
+
+        // Check that users B now has READ access to the data products 1, 2, and 3
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ));
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB,
+                DataProduct.newBuilder().setDataProductId(dp2.getExternalId()).build(), Permission.READ));
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB,
+                DataProduct.newBuilder().setDataProductId(dp3.getExternalId()).build(), Permission.READ));
+    }
 }
