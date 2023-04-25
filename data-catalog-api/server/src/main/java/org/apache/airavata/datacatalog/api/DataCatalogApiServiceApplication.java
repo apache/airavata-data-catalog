@@ -1,8 +1,8 @@
 package org.apache.airavata.datacatalog.api;
 
 import org.apache.airavata.datacatalog.api.sharing.SharingManager;
-import org.apache.airavata.datacatalog.api.sharing.SharingManagerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,9 +29,7 @@ public class DataCatalogApiServiceApplication {
 
     @Bean
     @Primary
-    public SharingManager getSharingManager() {
-        // TODO: externalize bean name to a property
-        // return (SharingManager) applicationContext.getBean("simpleSharingManager");
-        return applicationContext.getBean(SharingManagerImpl.class);
+    public SharingManager getSharingManager(@Value("${sharing.manager.bean}") String sharingManagerBeanName) {
+        return applicationContext.getBean(sharingManagerBeanName, SharingManager.class);
     }
 }

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
-@Component
+@Component("custosSharingManager")
 public class SharingManagerImpl implements SharingManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SharingManagerImpl.class);
