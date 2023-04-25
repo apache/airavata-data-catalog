@@ -12,6 +12,7 @@ import org.apache.airavata.datacatalog.api.model.TenantEntity;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.model.sharing.simple.SimpleGroupEntity;
 import org.apache.airavata.datacatalog.api.model.sharing.simple.SimpleGroupSharingEntity;
+import org.apache.airavata.datacatalog.api.model.sharing.simple.SimplePublicSharingEntity;
 import org.apache.airavata.datacatalog.api.model.sharing.simple.SimpleTenantEntity;
 import org.apache.airavata.datacatalog.api.model.sharing.simple.SimpleUserEntity;
 import org.apache.airavata.datacatalog.api.model.sharing.simple.SimpleUserSharingEntity;
@@ -20,6 +21,7 @@ import org.apache.airavata.datacatalog.api.repository.TenantRepository;
 import org.apache.airavata.datacatalog.api.repository.UserRepository;
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleGroupRepository;
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleGroupSharingRepository;
+import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimplePublicSharingRepository;
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleTenantRepository;
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleUserRepository;
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleUserSharingRepository;
@@ -47,6 +49,9 @@ public class SimpleSharingManagerImpl implements SharingManager {
 
     @Autowired
     private SimpleGroupSharingRepository simpleGroupSharingRepository;
+
+    @Autowired
+    private SimplePublicSharingRepository simplePublicSharingRepository;
 
     @Autowired
     private SimpleTenantRepository simpleTenantRepository;
@@ -167,20 +172,49 @@ public class SimpleSharingManagerImpl implements SharingManager {
 
     @Override
     public boolean hasPublicAccess(DataProduct dataProduct, Permission permission) throws SharingException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'hasPublicAccess'");
+        DataProductEntity dataProductEntity = resolveDataProduct(dataProduct);
+        SimpleUserEntity simpleUser = simpleUserRepository.findByUser(dataProductEntity.getOwner());
+        SimpleTenantEntity simpleTenant = simpleUser.getSimpleTenant();
+
+        Optional<SimplePublicSharingEntity> maybeSimplePublicSharingEntity = simplePublicSharingRepository
+                .findBySimpleTenantAndDataProduct_DataProductIdAndPermission(simpleTenant,
+                        dataProductEntity.getDataProductId(), permission);
+        return maybeSimplePublicSharingEntity.isPresent();
     }
 
     @Override
     public void grantPublicAccess(DataProduct dataProduct, Permission permission) throws SharingException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'grantPublicAccess'");
+
+        DataProductEntity dataProductEntity = resolveDataProduct(dataProduct);
+        SimpleUserEntity simpleUser = simpleUserRepository.findByUser(dataProductEntity.getOwner());
+        SimpleTenantEntity simpleTenant = simpleUser.getSimpleTenant();
+
+        Optional<SimplePublicSharingEntity> maybeSimplePublicSharingEntity = simplePublicSharingRepository
+                .findBySimpleTenantAndDataProduct_DataProductIdAndPermission(simpleTenant,
+                        dataProductEntity.getDataProductId(), permission);
+
+        if (maybeSimplePublicSharingEntity.isEmpty()) {
+            SimplePublicSharingEntity simplePublicSharingEntity = new SimplePublicSharingEntity();
+            simplePublicSharingEntity.setDataProduct(dataProductEntity);
+            simplePublicSharingEntity.setPermission(permission);
+            simplePublicSharingEntity.setSimpleTenant(simpleTenant);
+            simplePublicSharingRepository.save(simplePublicSharingEntity);
+        }
     }
 
     @Override
     public void revokePublicAccess(DataProduct dataProduct, Permission permission) throws SharingException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'revokePublicAccess'");
+        DataProductEntity dataProductEntity = resolveDataProduct(dataProduct);
+        SimpleUserEntity simpleUser = simpleUserRepository.findByUser(dataProductEntity.getOwner());
+        SimpleTenantEntity simpleTenant = simpleUser.getSimpleTenant();
+
+        Optional<SimplePublicSharingEntity> maybeSimplePublicSharingEntity = simplePublicSharingRepository
+                .findBySimpleTenantAndDataProduct_DataProductIdAndPermission(simpleTenant,
+                        dataProductEntity.getDataProductId(), permission);
+
+        maybeSimplePublicSharingEntity.ifPresent(simplePublicSharingEntity -> {
+            simplePublicSharingRepository.delete(simplePublicSharingEntity);
+        });
     }
 
     private SimpleGroupEntity resolveGroup(GroupInfo groupInfo) {

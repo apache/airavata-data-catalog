@@ -270,4 +270,54 @@ public class SimpleSharingManagerImplTest {
         assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ));
         assertFalse(simpleSharingManagerImpl.userHasAccess(userC, dataProduct, Permission.READ));
     }
+
+    @Test
+    public void testGrantPublicAccess() throws SharingException {
+
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userA").build();
+        UserEntity testUserA = simpleSharingManagerImpl.resolveUser(userA);
+
+        // Create a data product
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(testUserA);
+        dataProductEntity.setName("test data product");
+        dataProductRepository.save(dataProductEntity);
+
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId()) // only need the data product id
+                .build();
+
+        assertFalse(simpleSharingManagerImpl.hasPublicAccess(dataProduct, Permission.READ));
+
+        simpleSharingManagerImpl.grantPublicAccess(dataProduct, Permission.READ);
+
+        assertTrue(simpleSharingManagerImpl.hasPublicAccess(dataProduct, Permission.READ));
+    }
+
+    @Test
+    public void testRevokePublicAccess() throws SharingException {
+
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userA").build();
+        UserEntity testUserA = simpleSharingManagerImpl.resolveUser(userA);
+
+        // Create a data product
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(testUserA);
+        dataProductEntity.setName("test data product");
+        dataProductRepository.save(dataProductEntity);
+
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId()) // only need the data product id
+                .build();
+
+        simpleSharingManagerImpl.grantPublicAccess(dataProduct, Permission.READ);
+
+        assertTrue(simpleSharingManagerImpl.hasPublicAccess(dataProduct, Permission.READ));
+
+        simpleSharingManagerImpl.revokePublicAccess(dataProduct, Permission.READ);
+
+        assertFalse(simpleSharingManagerImpl.hasPublicAccess(dataProduct, Permission.READ));
+    }
 }
