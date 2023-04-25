@@ -14,9 +14,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "simple_user_sharing")
+@Table(name = "simple_user_sharing", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "simple_user_id", "data_product_id", "permission_id" }) })
 public class SimpleUserSharingEntity {
 
     @Id

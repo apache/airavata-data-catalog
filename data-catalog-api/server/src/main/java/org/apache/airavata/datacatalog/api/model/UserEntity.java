@@ -10,11 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
-// TODO: need a unique constraint on (tenant, externalId)
 @Entity
 // 'user' is a reserved word, so naming this table 'user_table'
-@Table(name = "user_table")
+@Table(name = "user_table", uniqueConstraints = { @UniqueConstraint(columnNames = { "tenant_id", "external_id" }) })
 public class UserEntity {
 
     @Id

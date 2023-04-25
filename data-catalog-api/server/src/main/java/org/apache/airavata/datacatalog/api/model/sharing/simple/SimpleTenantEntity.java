@@ -12,9 +12,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "simple_tenant")
+@Table(name = "simple_tenant", uniqueConstraints = { @UniqueConstraint(columnNames = { "external_id" }) })
 public class SimpleTenantEntity {
 
     @Id

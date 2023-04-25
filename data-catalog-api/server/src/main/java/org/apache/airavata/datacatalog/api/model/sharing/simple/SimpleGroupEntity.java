@@ -15,10 +15,11 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
-// TODO: need a unique constraint on (tenant, externalId)
 @Entity
-@Table(name = "simple_group")
+@Table(name = "simple_group", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "simple_tenant_id", "external_id" }) })
 public class SimpleGroupEntity {
 
     @Id
