@@ -1,9 +1,6 @@
 package org.apache.airavata.datacatalog.api.sharing;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+import jakarta.annotation.PostConstruct;
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.GroupInfo;
 import org.apache.airavata.datacatalog.api.Permission;
@@ -12,18 +9,26 @@ import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.model.TenantEntity;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.repository.TenantRepository;
+import org.apache.custos.clients.CustosClientProvider;
+import org.apache.custos.iam.service.FindUsersResponse;
+import org.apache.custos.iam.service.UserRepresentation;
 import org.apache.custos.sharing.core.Entity;
 import org.apache.custos.sharing.core.EntityType;
 import org.apache.custos.sharing.core.PermissionType;
 import org.apache.custos.sharing.core.exceptions.CustosSharingException;
 import org.apache.custos.sharing.core.impl.SharingImpl;
 import org.apache.custos.sharing.core.utils.Constants;
+import org.apache.custos.user.management.client.UserManagementClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Component("custosSharingManager")
 public class SharingManagerImpl implements SharingManager {
@@ -38,16 +43,34 @@ public class SharingManagerImpl implements SharingManager {
     @Autowired
     TenantRepository tenantRepository;
 
+
+    CustosClientProvider custosClientProvider;
+
+
     private static final String PUBLIC_ACCESS_GROUP = "public_access_group";
 
     @PostConstruct
-    public void initializeTenants() throws SharingException {
+    public void initializeTenants(@Value("${identity.server.hostname}") String hostname,
+                                  @Value("${identity.server.port}") int port,
+                                  @Value("${identity.server.clientId}") String clientId,
+                                  @Value("${identity.server.clientSec}") String clientSec) throws SharingException {
+
 
         logger.info("Initializing all tenants");
         List<TenantEntity> tenants = tenantRepository.findAll();
         for (TenantEntity tenant : tenants) {
             this.initialize(tenant.getExternalId());
         }
+
+
+        logger.info("Initializing Custos client provider");
+        custosClientProvider = new CustosClientProvider.Builder()
+                .setServerHost(hostname)
+                .setServerPort(port)
+                .setClientId(clientId)
+                .setClientSec(clientSec).build();
+
+
     }
 
     @Override
@@ -89,8 +112,29 @@ public class SharingManagerImpl implements SharingManager {
     }
 
     @Override
-    public UserEntity resolveUser(UserInfo userInfo) {
-        return null;
+    public UserEntity resolveUser(UserInfo userInfo) throws SharingException {
+        try (UserManagementClient userManagementClient = custosClientProvider.getUserManagementClient()) {
+            FindUsersResponse findUsersResponse = userManagementClient.findUser(userInfo.getTenantId(),
+                    userInfo.getUserId(), null, null, null, 0, 1);
+            if (!findUsersResponse.getUsersList().isEmpty()) {
+                UserRepresentation userProfile = findUsersResponse.getUsersList().get(0);
+                TenantEntity tenantEntity = new TenantEntity();
+                tenantEntity.setExternalId(userInfo.getTenantId());
+
+                UserEntity userEntity = new UserEntity();
+                userEntity.setExternalId(userProfile.getId());
+                userEntity.setName(userProfile.getUsername());
+                userEntity.setTenant(tenantEntity);
+                return userEntity;
+            } else {
+                throw new SharingException("User " + userInfo.getUserId() + " in tenant "
+                        + userInfo.getTenantId() + " not found in Identity Sever ");
+            }
+        } catch (IOException e) {
+            throw new SharingException("Error occurred while resolving user " + userInfo.getUserId()
+                    + " tenant " + userInfo.getTenantId(), e);
+        }
+
     }
 
     @Override
@@ -112,7 +156,7 @@ public class SharingManagerImpl implements SharingManager {
 
     @Override
     public void grantPermissionToUser(UserInfo userInfo, DataProduct dataProduct, Permission permission,
-            UserInfo sharedByUser)
+                                      UserInfo sharedByUser)
             throws SharingException {
 
         List<String> userIds = new ArrayList<>();
@@ -149,7 +193,7 @@ public class SharingManagerImpl implements SharingManager {
 
     @Override
     public void grantPermissionToGroup(GroupInfo groupInfo, DataProduct dataProduct, Permission permission,
-            UserInfo sharedByUser)
+                                       UserInfo sharedByUser)
             throws SharingException {
 
         List<String> userIds = new ArrayList<>();
