@@ -9,6 +9,7 @@ import org.apache.airavata.datacatalog.api.MetadataSchema;
 import org.apache.airavata.datacatalog.api.MetadataSchemaField;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.Permission;
+import org.apache.airavata.datacatalog.api.UserInfo;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
@@ -70,11 +71,12 @@ public class DataCatalogServiceImpl implements DataCatalogService {
         dataProductEntity.setOwner(owner);
         dataProductMapper.mapModelToEntity(dataProduct, dataProductEntity);
         DataProductEntity savedDataProductEntity = dataProductRepository.save(dataProductEntity);
+        DataProduct savedDataProduct = toDataProduct(savedDataProductEntity);
 
-        sharingManager.grantPermissionToUser(dataProduct.getOwner(), dataProduct, Permission.OWNER,
+        sharingManager.grantPermissionToUser(dataProduct.getOwner(), savedDataProduct, Permission.OWNER,
                 dataProduct.getOwner());
 
-        return toDataProduct(savedDataProductEntity);
+        return savedDataProduct;
     }
 
     @Override
@@ -121,9 +123,14 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
-    public MetadataSchemaQueryResult searchDataProducts(String sql)
+    public MetadataSchemaQueryResult searchDataProducts(UserInfo userInfo, String sql)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
-        return metadataSchemaQueryExecutor.execute(sql);
+        try {
+            UserEntity userEntity = sharingManager.resolveUser(userInfo);
+            return metadataSchemaQueryExecutor.execute(userEntity, sql);
+        } catch (SharingException e) {
+            throw new RuntimeException("Unable to resolve " + userInfo, e);
+        }
     }
 
     @Override

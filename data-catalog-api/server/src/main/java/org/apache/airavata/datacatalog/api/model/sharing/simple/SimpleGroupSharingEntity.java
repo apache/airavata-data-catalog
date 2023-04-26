@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,7 +33,7 @@ public class SimpleGroupSharingEntity {
     private SimpleGroupEntity simpleGroup;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "data_product_id", referencedColumnName = "data_product_id", nullable = false, updatable = false)
+    @JoinColumn(name = "data_product_id", referencedColumnName = "data_product_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_simple_group_sharing_data_product_id"))
     private DataProductEntity dataProduct;
 
     @Column(name = "permission_id")

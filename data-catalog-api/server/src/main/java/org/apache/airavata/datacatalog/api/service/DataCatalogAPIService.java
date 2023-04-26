@@ -36,11 +36,14 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
+import org.apache.airavata.datacatalog.api.Permission;
+import org.apache.airavata.datacatalog.api.UserInfo;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateException;
 import org.apache.airavata.datacatalog.api.exception.SharingException;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
+import org.apache.airavata.datacatalog.api.sharing.SharingManager;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +59,9 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
     @Autowired
     DataCatalogService dataCatalogService;
+
+    @Autowired
+    SharingManager sharingManager;
 
     @Override
     public void createDataProduct(DataProductCreateRequest request,
@@ -83,7 +89,12 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     public void updateDataProduct(DataProductUpdateRequest request,
             StreamObserver<DataProductUpdateResponse> responseObserver) {
 
-        // TODO: check that user has access to update data product record
+        // check that user has access to update data product record
+        if (!checkHasPermission(request.getUserInfo(), request.getDataProduct(), Permission.WRITE_METADATA,
+                responseObserver)) {
+            return;
+        }
+
         try {
             DataProduct savedDataProduct = dataCatalogService.updateDataProduct(request.getDataProduct());
 
@@ -97,9 +108,13 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
     @Override
     public void getDataProduct(DataProductGetRequest request, StreamObserver<DataProductGetResponse> responseObserver) {
-        // TODO: check that user has READ access on data product record
+
         try {
             DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+            // check that user has READ_METADATA access on data product record
+            if (!checkHasPermission(request.getUserInfo(), dataProduct, Permission.READ_METADATA, responseObserver)) {
+                return;
+            }
 
             responseObserver.onNext(DataProductGetResponse.newBuilder().setDataProduct(dataProduct).build());
             responseObserver.onCompleted();
@@ -112,11 +127,20 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
     @Override
     public void deleteDataProduct(DataProductDeleteRequest request,
             StreamObserver<DataProductDeleteResponse> responseObserver) {
-        // TODO: check that user has WRITE access on data product record
-        dataCatalogService.deleteDataProduct(request.getDataProductId());
+        try {
+            DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+            // check that user has WRITE_METADATA access on data product record
+            if (!checkHasPermission(request.getUserInfo(), dataProduct, Permission.WRITE_METADATA, responseObserver)) {
+                return;
+            }
+            dataCatalogService.deleteDataProduct(request.getDataProductId());
 
-        responseObserver.onNext(DataProductDeleteResponse.newBuilder().build());
-        responseObserver.onCompleted();
+            responseObserver.onNext(DataProductDeleteResponse.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND.asException());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
@@ -125,7 +149,14 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
         String dataProductId = request.getDataProductId();
         String schemaName = request.getSchemaName();
+
         try {
+            DataProduct checkDataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+            // check that user has WRITE_METADATA access on data product record
+            if (!checkHasPermission(request.getUserInfo(), checkDataProduct, Permission.WRITE_METADATA,
+                    responseObserver)) {
+                return;
+            }
             DataProduct dataProduct = dataCatalogService.addDataProductToMetadataSchema(dataProductId, schemaName);
 
             responseObserver
@@ -144,6 +175,12 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         String dataProductId = request.getDataProductId();
         String schemaName = request.getSchemaName();
         try {
+            DataProduct checkDataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+            // check that user has WRITE_METADATA access on data product record
+            if (!checkHasPermission(request.getUserInfo(), checkDataProduct, Permission.WRITE_METADATA,
+                    responseObserver)) {
+                return;
+            }
             DataProduct dataProduct = dataCatalogService.removeDataProductFromMetadataSchema(dataProductId, schemaName);
 
             responseObserver
@@ -161,7 +198,8 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductSearchResponse> responseObserver) {
 
         try {
-            MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getSql());
+            MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getUserInfo(),
+                    request.getSql());
             List<DataProduct> dataProducts = searchResult.dataProducts();
             responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
             responseObserver.onCompleted();
@@ -270,4 +308,26 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
                 MetadataSchemaFieldUpdateResponse.newBuilder().setMetadataSchemaField(metadataSchemaField).build());
         responseObserver.onCompleted();
     }
+
+    private <T> boolean checkHasPermission(UserInfo userInfo, DataProduct dataProduct, Permission permission,
+            StreamObserver<T> responseObserver) {
+        try {
+            boolean userHasAccess = sharingManager.userHasAccess(userInfo, dataProduct,
+                    permission);
+            if (!userHasAccess) {
+                responseObserver.onError(Status.PERMISSION_DENIED
+                        .withDescription("user does not have " + permission + " permission")
+                        .asException());
+                responseObserver.onCompleted();
+                return false;
+            } else {
+                return true;
+            }
+        } catch (SharingException e) {
+            responseObserver.onError(Status.INTERNAL.withDescription(e.getMessage()).asException());
+            responseObserver.onCompleted();
+        }
+        return false;
+    }
+
 }

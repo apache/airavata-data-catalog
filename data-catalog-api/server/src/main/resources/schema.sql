@@ -53,3 +53,28 @@ FROM
     INNER JOIN simple_group_membership gm ON gm.simple_group_id = s.simple_group_id
     INNER JOIN simple_user su ON su.simple_user_id = gm.simple_user_id
     INNER JOIN data_product_hierarchy dph ON dph.root = s.data_product_id;
+
+-- Add ON DELETE CASCADE to the simple sharing tables
+ALTER TABLE
+    simple_user_sharing DROP CONSTRAINT fk_simple_user_sharing_data_product_id;
+
+ALTER TABLE
+    simple_user_sharing
+ADD
+    CONSTRAINT fk_simple_user_sharing_data_product_id FOREIGN KEY (data_product_id) REFERENCES data_product(data_product_id) ON DELETE CASCADE;
+
+ALTER TABLE
+    simple_group_sharing DROP CONSTRAINT fk_simple_group_sharing_data_product_id;
+
+ALTER TABLE
+    simple_group_sharing
+ADD
+    CONSTRAINT fk_simple_group_sharing_data_product_id FOREIGN KEY (data_product_id) REFERENCES data_product(data_product_id) ON DELETE CASCADE;
+
+ALTER TABLE
+    simple_public_sharing DROP CONSTRAINT fk_simple_public_sharing_data_product_id;
+
+ALTER TABLE
+    simple_public_sharing
+ADD
+    CONSTRAINT fk_simple_public_sharing_data_product_id FOREIGN KEY (data_product_id) REFERENCES data_product(data_product_id) ON DELETE CASCADE;
