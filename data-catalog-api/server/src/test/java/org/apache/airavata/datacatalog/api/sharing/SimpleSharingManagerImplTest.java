@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
@@ -423,4 +425,34 @@ public class SimpleSharingManagerImplTest {
         assertTrue(simpleSharingManagerImpl.userHasAccess(userB,
                 DataProduct.newBuilder().setDataProductId(dp3.getExternalId()).build(), Permission.READ));
     }
+
+    @Test
+    public void testUserHasAccessOwnerHasAllPermissions() throws SharingException {
+
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("userA").build();
+        UserEntity testUserA = simpleSharingManagerImpl.resolveUser(userA);
+
+        // Create a data product
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(testUserA);
+        dataProductEntity.setName("test data product");
+        dataProductRepository.save(dataProductEntity);
+
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId()) // only need the data product id
+                .build();
+
+        // Grant OWNER access to userA for the data product
+        simpleSharingManagerImpl.grantPermissionToUser(userA, dataProduct, Permission.OWNER, userA);
+
+        // Check that owner has all permissions
+        Set<Permission> allPermissions = new HashSet<Permission>(Arrays.asList(Permission.values()));
+        allPermissions.remove(Permission.UNRECOGNIZED); // remove the special protobuf specific UNRECOGNIZED permission
+        for (Permission permission : allPermissions) {
+            assertTrue(simpleSharingManagerImpl.userHasAccess(userA, dataProduct, permission), permission.toString());
+        }
+
+    }
+
 }

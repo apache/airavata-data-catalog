@@ -1,5 +1,6 @@
 package org.apache.airavata.datacatalog.api.sharing;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
@@ -82,10 +83,10 @@ public class SimpleSharingManagerImpl implements SharingManager {
         UserEntity user = resolveUser(userInfo);
         DataProductEntity dataProductEntity = resolveDataProduct(dataProduct);
         Query query = entityManager.createNativeQuery("select 1 from " + getDataProductSharingView()
-                + " where user_id = :user_id and data_product_id = :data_product_id and permission_id = :permission_id");
+                + " where user_id = :user_id and data_product_id = :data_product_id and permission_id in :permission_id");
         query.setParameter("user_id", user.getUserId());
         query.setParameter("data_product_id", dataProductEntity.getDataProductId());
-        query.setParameter("permission_id", permission.getNumber());
+        query.setParameter("permission_id", Arrays.asList(permission.getNumber(), Permission.OWNER.getNumber()));
 
         return query.getResultList().size() > 0;
     }
