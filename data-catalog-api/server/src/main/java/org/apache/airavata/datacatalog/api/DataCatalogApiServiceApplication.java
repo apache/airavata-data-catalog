@@ -1,9 +1,15 @@
 package org.apache.airavata.datacatalog.api;
 
+import org.apache.airavata.datacatalog.api.sharing.SharingManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @ComponentScan(basePackages = { "org.apache.airavata.datacatalog.api", "org.apache.custos.sharing.core" })
@@ -14,8 +20,16 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "org.apache.custos.sharing.core.persistance.model" })
 public class DataCatalogApiServiceApplication {
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public static void main(String[] args) {
         SpringApplication.run(DataCatalogApiServiceApplication.class, args);
     }
 
+    @Bean
+    @Primary
+    public SharingManager getSharingManager(@Value("${sharing.manager.bean}") String sharingManagerBeanName) {
+        return applicationContext.getBean(sharingManagerBeanName, SharingManager.class);
+    }
 }

@@ -14,6 +14,7 @@ import org.apache.airavata.datacatalog.api.mapper.DataProductMapper;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
+import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryExecutor;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryResult;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryWriter;
@@ -68,7 +69,7 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
     DataProductMapper dataProductMapper;
 
     @Override
-    public MetadataSchemaQueryResult execute(String sql)
+    public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
 
         // Create a schema that contains the data_product table and all of the metadata
@@ -148,7 +149,8 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
 
         });
 
-        String finalSql = metadataSchemaQueryWriter.rewriteQuery(validatedSqlNode, metadataSchemas, tableAliases);
+        String finalSql = metadataSchemaQueryWriter.rewriteQuery(userEntity, validatedSqlNode, metadataSchemas,
+                tableAliases);
         logger.debug("Metadata schema query final sql: {}", finalSql);
 
         List<DataProductEntity> dataProductEntities = entityManager.createNativeQuery(finalSql, DataProductEntity.class)

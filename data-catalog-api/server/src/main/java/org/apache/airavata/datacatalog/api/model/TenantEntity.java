@@ -8,9 +8,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "tenant")
+@Table(name = "tenant", uniqueConstraints = { @UniqueConstraint(columnNames = { "external_id" }) })
 public class TenantEntity {
 
     @Id

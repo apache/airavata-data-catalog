@@ -33,6 +33,7 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
+import org.apache.airavata.datacatalog.api.UserInfo;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
@@ -43,32 +44,36 @@ import io.grpc.StatusRuntimeException;;
 public class DataCatalogAPIClient {
 
     private final DataCatalogAPIServiceBlockingStub blockingStub;
+    private final UserInfo userInfo = UserInfo.newBuilder().setUserId("demoUser").setTenantId("demoTenant").build();
 
     public DataCatalogAPIClient(Channel channel) {
         blockingStub = DataCatalogAPIServiceGrpc.newBlockingStub(channel);
     }
 
     public DataProduct createDataProduct(DataProduct dataProduct) {
-        DataProductCreateRequest request = DataProductCreateRequest.newBuilder().setDataProduct(dataProduct).build();
+        DataProductCreateRequest request = DataProductCreateRequest.newBuilder().setDataProduct(dataProduct)
+                .setUserInfo(userInfo).build();
         DataProductCreateResponse response = blockingStub.createDataProduct(request);
         return response.getDataProduct();
     }
 
     public DataProduct updateDataProduct(DataProduct dataProduct) {
-        DataProductUpdateRequest request = DataProductUpdateRequest.newBuilder().setDataProduct(dataProduct).build();
+        DataProductUpdateRequest request = DataProductUpdateRequest.newBuilder().setDataProduct(dataProduct)
+                .setUserInfo(userInfo).build();
         DataProductUpdateResponse response = blockingStub.updateDataProduct(request);
         return response.getDataProduct();
     }
 
     public DataProduct getDataProduct(String dataProductId) {
-        DataProductGetRequest request = DataProductGetRequest.newBuilder().setDataProductId(dataProductId).build();
+        DataProductGetRequest request = DataProductGetRequest.newBuilder().setDataProductId(dataProductId)
+                .setUserInfo(userInfo).build();
         DataProductGetResponse response = blockingStub.getDataProduct(request);
         return response.getDataProduct();
     }
 
     public void deleteDataProduct(String dataProductId) {
         DataProductDeleteRequest request = DataProductDeleteRequest.newBuilder().setDataProductId(dataProductId)
-                .build();
+                .setUserInfo(userInfo).build();
         blockingStub.deleteDataProduct(request);
     }
 
@@ -122,21 +127,22 @@ public class DataCatalogAPIClient {
 
     public DataProduct addDataProductToMetadataSchema(String dataProductId, String schemaName) {
         DataProductAddToMetadataSchemaRequest request = DataProductAddToMetadataSchemaRequest.newBuilder()
-                .setDataProductId(dataProductId).setSchemaName(schemaName).build();
+                .setDataProductId(dataProductId).setSchemaName(schemaName).setUserInfo(userInfo).build();
         DataProductAddToMetadataSchemaResponse response = blockingStub.addDataProductToMetadataSchema(request);
         return response.getDataProduct();
     }
 
     public DataProduct removeDataProductFromMetadataSchema(String dataProductId, String schemaName) {
         DataProductRemoveFromMetadataSchemaRequest request = DataProductRemoveFromMetadataSchemaRequest.newBuilder()
-                .setDataProductId(dataProductId).setSchemaName(schemaName).build();
+                .setDataProductId(dataProductId).setSchemaName(schemaName).setUserInfo(userInfo).build();
         DataProductRemoveFromMetadataSchemaResponse response = blockingStub
                 .removeDataProductFromMetadataSchema(request);
         return response.getDataProduct();
     }
 
     public List<DataProduct> searchDataProducts(String sql) {
-        DataProductSearchRequest request = DataProductSearchRequest.newBuilder().setSql(sql).build();
+        DataProductSearchRequest request = DataProductSearchRequest.newBuilder().setSql(sql).setUserInfo(userInfo)
+                .build();
         DataProductSearchResponse response = blockingStub.searchDataProducts(request);
         return response.getDataProductsList();
     }
@@ -282,7 +288,7 @@ public class DataCatalogAPIClient {
             // searchResults = client.searchDataProducts("""
             // select * from my_schema where not (field1 < 5 or field3 = 'bar')
             // """);
-            System.out.println(searchResults);
+            System.out.println("Shouldn't match anything: " + searchResults);
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         }

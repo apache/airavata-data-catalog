@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.airavata.datacatalog.api.Permission;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
+import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryWriter;
+import org.apache.airavata.datacatalog.api.sharing.SharingManager;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
@@ -18,10 +21,14 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlSelect;
 import org.apache.calcite.sql.dialect.PostgresqlSqlDialect;
 import org.apache.calcite.sql.util.SqlShuttle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQueryWriter {
+
+    @Autowired
+    SharingManager sharingManager;
 
     private static final class MetadataSchemaFieldFilterRewriter extends SqlShuttle {
 
@@ -150,11 +157,11 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
     }
 
     @Override
-    public String rewriteQuery(SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
+    public String rewriteQuery(UserEntity userEntity, SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
             Map<String, String> tableAliases) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(writeCommonTableExpressions(metadataSchemas));
+        sb.append(writeCommonTableExpressions(userEntity, metadataSchemas));
         sb.append(" SELECT * FROM ");
         sb.append(((SqlSelect) sqlNode).getFrom().toSqlString(PostgresqlSqlDialect.DEFAULT));
         sb.append(" WHERE ");
@@ -170,23 +177,24 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
         return filterRewriter.finalizeSql();
     }
 
-    String writeCommonTableExpressions(Collection<MetadataSchemaEntity> metadataSchemas) {
+    String writeCommonTableExpressions(UserEntity userEntity, Collection<MetadataSchemaEntity> metadataSchemas) {
         StringBuilder sb = new StringBuilder();
         List<String> commonTableExpressions = new ArrayList<>();
         for (MetadataSchemaEntity metadataSchema : metadataSchemas) {
-            commonTableExpressions.add(writeCommonTableExpression(metadataSchema));
+            commonTableExpressions.add(writeCommonTableExpression(userEntity, metadataSchema));
         }
         sb.append("WITH ");
         sb.append(String.join(", ", commonTableExpressions));
         return sb.toString();
     }
 
-    String writeCommonTableExpression(MetadataSchemaEntity metadataSchemaEntity) {
+    String writeCommonTableExpression(UserEntity userEntity, MetadataSchemaEntity metadataSchemaEntity) {
 
         StringBuilder sb = new StringBuilder();
         sb.append(metadataSchemaEntity.getSchemaName());
         sb.append(" AS (");
-        sb.append("select dp_.data_product_id, dp_.parent_data_product_id, dp_.external_id, dp_.name, dp_.metadata ");
+        sb.append(
+                "select dp_.data_product_id, dp_.parent_data_product_id, dp_.external_id, dp_.name, dp_.metadata, dp_.owner_id ");
         // for (MetadataSchemaFieldEntity field :
         // metadataSchemaEntity.getMetadataSchemaFields()) {
         // TODO: include each field as well?
@@ -194,6 +202,17 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
         sb.append("from data_product dp_ ");
         sb.append("inner join data_product_metadata_schema dpms_ on dpms_.data_product_id = dp_.data_product_id ");
         sb.append("inner join metadata_schema ms_ on ms_.metadata_schema_id = dpms_.metadata_schema_id ");
+        sb.append("inner join ");
+        sb.append(sharingManager.getDataProductSharingView());
+        sb.append(" dpsv_ on dpsv_.data_product_id = dp_.data_product_id ");
+        sb.append("and dpsv_.user_id = ");
+        // TODO: change these to be bound parameters
+        sb.append(userEntity.getUserId());
+        sb.append(" and dpsv_.permission_id in (");
+        sb.append(Permission.OWNER.getNumber());
+        sb.append(",");
+        sb.append(Permission.READ_METADATA.getNumber());
+        sb.append(") ");
         sb.append("where ms_.metadata_schema_id = " + metadataSchemaEntity.getMetadataSchemaId());
         sb.append(")");
         return sb.toString();
