@@ -10,12 +10,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @ComponentScan(basePackages = { "org.apache.airavata.datacatalog.api", "org.apache.custos.sharing.core" })
 @SpringBootApplication
 @EnableJpaRepositories({ "org.apache.custos.sharing.core.persistance.repository",
         "org.apache.airavata.datacatalog.api.repository" })
+@EnableJpaAuditing
 @EntityScan(basePackages = { "org.apache.airavata.datacatalog.api.model",
         "org.apache.custos.sharing.core.persistance.model" })
 public class DataCatalogApiServiceApplication {
