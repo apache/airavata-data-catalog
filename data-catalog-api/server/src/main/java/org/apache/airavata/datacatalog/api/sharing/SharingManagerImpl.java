@@ -18,6 +18,7 @@ import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.repository.TenantRepository;
 import org.apache.airavata.datacatalog.api.repository.UserRepository;
 import org.apache.custos.clients.CustosClientProvider;
+import org.apache.custos.group.management.client.GroupManagementClient;
 import org.apache.custos.iam.service.FindUsersResponse;
 import org.apache.custos.iam.service.UserRepresentation;
 import org.apache.custos.sharing.core.Entity;
@@ -27,15 +28,14 @@ import org.apache.custos.sharing.core.exceptions.CustosSharingException;
 import org.apache.custos.sharing.core.impl.SharingImpl;
 import org.apache.custos.sharing.core.utils.Constants;
 import org.apache.custos.user.management.client.UserManagementClient;
+import org.apache.custos.user.profile.service.Group;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
-@Component("custosSharingManager")
 public class SharingManagerImpl implements SharingManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SharingManagerImpl.class);
@@ -303,6 +303,17 @@ public class SharingManagerImpl implements SharingManager {
             newTenantEntity = tenantRepository.save(newTenantEntity);
             initialize(newTenantEntity.getExternalId());
             return newTenantEntity;
+        }
+    }
+
+    private void createPublicGroup(String tenantId) throws SharingException {
+
+        try (GroupManagementClient groupManagementClient = custosClientProvider.getGroupManagementClient()) {
+            // TODO: but how do I specify the tenantId to search in?
+            Group findGroupsResponse = groupManagementClient.findGroup(clientId, PUBLIC_ACCESS_GROUP, null);
+        } catch (IOException e) {
+            throw new SharingException("Error occurred while resolving public group " + PUBLIC_ACCESS_GROUP
+                    + " tenant " + tenantId, e);
         }
     }
 }

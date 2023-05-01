@@ -27,13 +27,11 @@ import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleTenan
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleUserRepository;
 import org.apache.airavata.datacatalog.api.repository.sharing.simple.SimpleUserSharingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 
-@Component("simpleSharingManager")
 public class SimpleSharingManagerImpl implements SharingManager {
 
     @Autowired
