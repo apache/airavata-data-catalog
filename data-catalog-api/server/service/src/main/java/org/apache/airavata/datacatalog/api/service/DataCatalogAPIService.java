@@ -80,7 +80,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         } catch (SharingException e) {
             logger.error("Sharing error when trying to create data product", e);
             responseObserver.onError(Status.INTERNAL.withDescription(e.getMessage()).asException());
-            responseObserver.onCompleted();
         }
 
     }
@@ -102,7 +101,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -120,7 +118,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -139,7 +136,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -164,7 +160,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -189,7 +184,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -206,11 +200,9 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         } catch (MetadataSchemaSqlParseException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription("Failed to parse SQL query.").asException());
-            responseObserver.onCompleted();
         } catch (MetadataSchemaSqlValidateException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription("Failed to validate SQL query.").asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -224,7 +216,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -249,7 +240,6 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.asException());
-            responseObserver.onCompleted();
         }
     }
 
@@ -318,14 +308,12 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
                 responseObserver.onError(Status.PERMISSION_DENIED
                         .withDescription("user does not have " + permission + " permission")
                         .asException());
-                responseObserver.onCompleted();
                 return false;
             } else {
                 return true;
             }
         } catch (SharingException e) {
             responseObserver.onError(Status.INTERNAL.withDescription(e.getMessage()).asException());
-            responseObserver.onCompleted();
         }
         return false;
     }
