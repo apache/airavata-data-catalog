@@ -63,6 +63,8 @@ public class SharingManagerImpl implements SharingManager {
     String clientId;
     @Value("${identity.server.clientSec}")
     String clientSec;
+    @Value("${identity.server.usePlainText:false}")
+    boolean usePlainText;
 
     @PostConstruct
     public void initializeTenants() throws SharingException {
@@ -78,7 +80,9 @@ public class SharingManagerImpl implements SharingManager {
                 .setServerHost(hostname)
                 .setServerPort(port)
                 .setClientId(clientId)
-                .setClientSec(clientSec).build();
+                .setClientSec(clientSec)
+                .usePlainText(usePlainText)
+                .build();
 
     }
 
