@@ -12,7 +12,7 @@ Run the API server
 
 ```
 mvn install
-cd data-catalog-api/server
+cd data-catalog-api/server/service
 mvn spring-boot:run
 ```
 
