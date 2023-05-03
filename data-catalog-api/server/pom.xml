@@ -47,6 +47,6 @@ under the License.
     <module>core</module>
     <module>service</module>
     <module>simple-sharing</module>
-    <module>custos-sharing</module>
+    <!-- <module>custos-sharing</module> -->
   </modules>
 </project>
