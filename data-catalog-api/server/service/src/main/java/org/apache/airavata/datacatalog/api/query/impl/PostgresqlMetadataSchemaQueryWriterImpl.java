@@ -14,6 +14,7 @@ import org.apache.airavata.datacatalog.api.model.MetadataSchemaFieldEntity;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.query.MetadataSchemaQueryWriter;
 import org.apache.airavata.datacatalog.api.sharing.SharingManager;
+import org.apache.calcite.sql.SqlBasicCall;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
@@ -158,14 +159,30 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
 
     @Override
     public String rewriteQuery(UserEntity userEntity, SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
-            Map<String, String> tableAliases) {
-        StringBuilder sb = new StringBuilder();
+                               Map<String, String> tableAliases) {
+        return writeCommonTableExpressions(userEntity, metadataSchemas) + buildSelectStatement(sqlNode, metadataSchemas, tableAliases);
+    }
 
-        sb.append(writeCommonTableExpressions(userEntity, metadataSchemas));
-        sb.append(" SELECT * FROM ");
-        sb.append(((SqlSelect) sqlNode).getFrom().toSqlString(PostgresqlSqlDialect.DEFAULT));
-        sb.append(" WHERE ");
-        sb.append(rewriteWhereClauseFilters(sqlNode, metadataSchemas, tableAliases));
+    private String buildSelectStatement(SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
+                                        Map<String, String> tableAliases) {
+        StringBuilder sb = new StringBuilder();
+        if (sqlNode instanceof SqlSelect) {
+            sb.append(" SELECT * FROM ");
+            sb.append(((SqlSelect) sqlNode).getFrom().toSqlString(PostgresqlSqlDialect.DEFAULT));
+            if (((SqlSelect) sqlNode).getWhere() != null) {
+                sb.append(" WHERE ");
+                sb.append(rewriteWhereClauseFilters(sqlNode, metadataSchemas, tableAliases));
+            }
+        } else if (sqlNode instanceof SqlBasicCall unionNode &&
+                ((SqlBasicCall) sqlNode).getOperator().getKind() == SqlKind.UNION) {
+
+            for (int i = 0; i < unionNode.getOperandList().size(); i++) {
+                if (i > 0) {
+                    sb.append(unionNode.getOperator().getName());
+                }
+                sb.append(buildSelectStatement(unionNode.getOperandList().get(i), metadataSchemas, tableAliases));
+            }
+        }
         return sb.toString();
     }
 

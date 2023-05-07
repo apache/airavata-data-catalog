@@ -132,21 +132,35 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
         // create a mapping from sm -> smilesdb
 
         // TODO: may not be a SqlSelect, might be an OrderBy for example
-        SqlSelect selectNode = (SqlSelect) validatedSqlNode;
         Map<String, String> tableAliases = new HashMap<>();
-        selectNode.getFrom().accept(new SqlShuttle() {
-
+        validatedSqlNode.accept(new SqlShuttle() {
             @Override
             public SqlNode visit(SqlCall call) {
-                if (call.isA(Collections.singleton(SqlKind.AS))) {
-
-                    SqlIdentifier first = call.operand(0);
-                    SqlIdentifier second = call.operand(1);
-                    tableAliases.put(second.getSimple(), first.getSimple());
+                if (call.getKind() == SqlKind.UNION) {
+                    // If there are multiple UNIONS
+                    for (SqlNode operand : call.getOperandList()) {
+                        operand.accept(this);
+                    }
+                } else if (call instanceof SqlSelect) {
+                    // if it's a plain select statement, visit it directly
+                    visitSelect((SqlSelect) call);
                 }
                 return super.visit(call);
             }
 
+            private void visitSelect(SqlSelect selectNode) {
+                selectNode.getFrom().accept(new SqlShuttle() {
+                    @Override
+                    public SqlNode visit(SqlCall call) {
+                        if (call.isA(Collections.singleton(SqlKind.AS))) {
+                            SqlIdentifier first = call.operand(0);
+                            SqlIdentifier second = call.operand(1);
+                            tableAliases.put(second.getSimple(), first.getSimple());
+                        }
+                        return super.visit(call);
+                    }
+                });
+            }
         });
 
         String finalSql = metadataSchemaQueryWriter.rewriteQuery(userEntity, validatedSqlNode, metadataSchemas,
