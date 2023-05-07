@@ -36,6 +36,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldUpdateResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaListRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaListResponse;
 import org.apache.airavata.datacatalog.api.Permission;
 import org.apache.airavata.datacatalog.api.UserInfo;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
@@ -217,6 +219,14 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         } catch (EntityNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.asException());
         }
+    }
+
+    @Override
+    public void getMetadataSchemas(MetadataSchemaListRequest request,
+                                    StreamObserver<MetadataSchemaListResponse> responseObserver) {
+        List<MetadataSchema> fields = dataCatalogService.getMetadataSchemas();
+        responseObserver.onNext(MetadataSchemaListResponse.newBuilder().addAllMetadataSchemas(fields).build());
+        responseObserver.onCompleted();
     }
 
     @Override

@@ -143,6 +143,13 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
+    public List<MetadataSchema> getMetadataSchemas() {
+        return metadataSchemaRepository.findAll().stream()
+                .map(this::toMetadataSchema)
+                .toList();
+    }
+
+    @Override
     public MetadataSchema createMetadataSchema(MetadataSchema metadataSchema) {
 
         MetadataSchemaEntity metadataSchemaEntity = new MetadataSchemaEntity();
