@@ -33,6 +33,8 @@ import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaFieldListResponse;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetRequest;
 import org.apache.airavata.datacatalog.api.MetadataSchemaGetResponse;
+import org.apache.airavata.datacatalog.api.MetadataSchemaListRequest;
+import org.apache.airavata.datacatalog.api.MetadataSchemaListResponse;
 import org.apache.airavata.datacatalog.api.UserInfo;
 
 import io.grpc.Channel;
@@ -101,6 +103,12 @@ public class DataCatalogAPIClient {
             }
             throw e;
         }
+    }
+
+    public List<MetadataSchema> getMetadataSchemas() {
+        MetadataSchemaListRequest request = MetadataSchemaListRequest.newBuilder().setUserInfo(userInfo).build();
+        MetadataSchemaListResponse response = blockingStub.getMetadataSchemas(request);
+        return response.getMetadataSchemasList();
     }
 
     public MetadataSchemaField getMetadataSchemaField(String schemaName, String fieldName) {
@@ -295,6 +303,48 @@ public class DataCatalogAPIClient {
             // select * from my_schema where not (field1 < 5 or field3 = 'bar')
             // """);
             System.out.println("Shouldn't match anything: " + searchResults);
+
+            // MetadataSchemas retrieval
+            MetadataSchema exp_schema = client.getMetadataSchema("exp_schema");
+            if (exp_schema == null) {
+                exp_schema = MetadataSchema.newBuilder().setSchemaName("exp_schema").build();
+                exp_schema = client.createMetadataSchema(exp_schema);
+                System.out.println(MessageFormat.format("Created metadata schema with name [{0}]",
+                        exp_schema.getSchemaName()));
+            }
+            List<MetadataSchema> metadataSchemas = client.getMetadataSchemas();
+            System.out.println("Metadata schema list: " + metadataSchemas);
+
+            // Retrieve data products belonging to different schemas
+            // Create data product that belongs to both my_schema and exp_schema
+            DataProduct dataProduct5 = DataProduct.newBuilder()
+                    .setName("exp-schema testing5")
+                    .setMetadata("{\"field3\": \"bar\", \"field1\": 10}")
+                    .addMetadataSchemas("my_schema")
+                    .addMetadataSchemas("exp_schema")
+                    .build();
+            client.createDataProduct(dataProduct5);
+
+            // Create data product that belongs to exp_schema
+            DataProduct dataProduct6 = DataProduct.newBuilder()
+                    .setName("exp-schema testing6")
+                    .setMetadata("{\"field3\": \"bar\", \"field1\": 10}")
+                    .addMetadataSchemas("exp_schema")
+                    .build();
+            client.createDataProduct(dataProduct5);
+
+            // Get the *distinct* data products that belong to both 'my_schema' and 'exp_schema'
+            List<DataProduct> searchResultsUnion = client.searchDataProducts("""
+                    select data_product_id from my_schema union distinct select data_product_id from exp_schema
+                     """);
+            // Get the data products that belong to both 'my_schema' and 'exp_schema'
+            List<DataProduct> searchResultsUnionAll = client.searchDataProducts("""
+                    select data_product_id from my_schema union all select data_product_id from exp_schema
+                     """);
+
+            System.out.println(MessageFormat.format("UNION search result count: [{0}], UNION ALL search result count: [{1}]. Should be different",
+                    searchResultsUnion.size(), searchResultsUnionAll.size()));
+
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         }

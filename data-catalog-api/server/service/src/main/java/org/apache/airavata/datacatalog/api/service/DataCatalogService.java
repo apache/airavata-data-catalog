@@ -28,6 +28,8 @@ public interface DataCatalogService {
 
     MetadataSchema getMetadataSchema(String schemaName);
 
+    List<MetadataSchema> getMetadataSchemas();
+
     MetadataSchema createMetadataSchema(MetadataSchema metadataSchema);
 
     MetadataSchemaField getMetadataSchemaField(String schemaName, String fieldName);
