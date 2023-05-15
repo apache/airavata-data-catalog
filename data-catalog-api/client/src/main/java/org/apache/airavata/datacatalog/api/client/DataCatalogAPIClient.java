@@ -46,8 +46,7 @@ import io.grpc.StatusRuntimeException;;
 public class DataCatalogAPIClient {
 
     private final DataCatalogAPIServiceBlockingStub blockingStub;
-    // String tenantId = "custos-e6vgzgskcr0pewrejma3-10000002";
-    String tenantId = "demotenant";
+    String tenantId = System.getenv("CUSTOS_CLIENT_ID") != null ? System.getenv("CUSTOS_CLIENT_ID") : "demotenant";
     String userId = "demouser";
     private final UserInfo userInfo = UserInfo.newBuilder()
             .setUserId(userId)

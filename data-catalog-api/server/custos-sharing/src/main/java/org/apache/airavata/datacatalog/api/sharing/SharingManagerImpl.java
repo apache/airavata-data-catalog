@@ -136,14 +136,14 @@ public class SharingManagerImpl implements SharingManager {
             return maybeUserEntity.get();
         } else {
             try (UserManagementClient userManagementClient = custosClientProvider.getUserManagementClient()) {
-                FindUsersResponse findUsersResponse = userManagementClient.findUser(userInfo.getTenantId(),
-                        userInfo.getUserId(), null, null, null, 0, 1);
+                FindUsersResponse findUsersResponse = userManagementClient.findUsers(userInfo.getTenantId(),
+                        null, userInfo.getUserId(), null, null, null, 0, 1);
                 if (!findUsersResponse.getUsersList().isEmpty()) {
                     UserRepresentation userProfile = findUsersResponse.getUsersList().get(0);
                     TenantEntity tenantEntity = resolveTenant(userInfo);
 
                     UserEntity userEntity = new UserEntity();
-                    userEntity.setExternalId(userProfile.getId());
+                    userEntity.setExternalId(userProfile.getUsername());
                     userEntity.setName(userProfile.getUsername());
                     userEntity.setTenant(tenantEntity);
                     return userRepository.save(userEntity);
@@ -173,7 +173,7 @@ public class SharingManagerImpl implements SharingManager {
 
     @Override
     public String getDataProductSharingView() {
-        return "data_catalog.custos_data_product_sharing_view";
+        return "custos_data_product_sharing_view";
     }
 
     @Override
