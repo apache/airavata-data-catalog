@@ -143,7 +143,7 @@ public class SharingManagerImpl implements SharingManager {
                     TenantEntity tenantEntity = resolveTenant(userInfo);
 
                     UserEntity userEntity = new UserEntity();
-                    userEntity.setExternalId(userProfile.getId());
+                    userEntity.setExternalId(userProfile.getUsername());
                     userEntity.setName(userProfile.getUsername());
                     userEntity.setTenant(tenantEntity);
                     return userRepository.save(userEntity);
@@ -173,7 +173,7 @@ public class SharingManagerImpl implements SharingManager {
 
     @Override
     public String getDataProductSharingView() {
-        return "data_catalog.custos_data_product_sharing_view";
+        return "custos_data_product_sharing_view";
     }
 
     @Override
