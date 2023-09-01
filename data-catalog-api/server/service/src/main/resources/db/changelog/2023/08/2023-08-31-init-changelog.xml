@@ -1,0 +1,644 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="mchristie31 (generated)" id="1693522030125-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="data_product"/>
+            </not>
+        </preConditions>
+        <createTable tableName="data_product">
+            <column name="data_product_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="data_product_pkey"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata" type="JSONB"/>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_data_product_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_group_membership"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_group_membership">
+            <column name="simple_group_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_group_membership_pkey"/>
+            </column>
+            <column name="simple_user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_group_membership_pkey"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_group_sharing"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_group_sharing">
+            <column name="sharing_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_group_sharing_pkey"/>
+            </column>
+            <column name="permission_id" type="VARCHAR(255)"/>
+            <column name="data_product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simple_group_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_by_user_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-4">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_user"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_user">
+            <column name="simple_user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_user_pkey"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simple_tenant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-5">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_user_sharing"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_user_sharing">
+            <column name="sharing_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_user_sharing_pkey"/>
+            </column>
+            <column name="permission_id" type="VARCHAR(255)"/>
+            <column name="data_product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_by_user_id" type="BIGINT"/>
+            <column name="simple_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-6">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="metadata_schema_field"/>
+            </not>
+        </preConditions>
+        <createTable tableName="metadata_schema_field">
+            <column name="metadata_schema_field_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="metadata_schema_field_pkey"/>
+            </column>
+            <column name="field_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="field_value_type" type="VARCHAR(255)"/>
+            <column name="json_path" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata_schema_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-7">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="tenant"/>
+            </not>
+        </preConditions>
+        <createTable tableName="tenant">
+            <column name="tenant_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="tenant_pkey"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-8">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_tenant"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_tenant">
+            <column name="simple_tenant_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_tenant_pkey"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-9">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_table"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_table">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="user_table_pkey"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-10">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_public_sharing"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_public_sharing">
+            <column name="sharing_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_public_sharing_pkey"/>
+            </column>
+            <column name="permission_id" type="VARCHAR(255)"/>
+            <column name="data_product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simple_tenant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-11">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="simple_group"/>
+            </not>
+        </preConditions>
+        <createTable tableName="simple_group">
+            <column name="simple_group_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="simple_group_pkey"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simple_tenant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-12">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <viewExists viewName="simple_data_product_sharing_view"/>
+            </not>
+        </preConditions>
+        <createView fullDefinition="false" viewName="simple_data_product_sharing_view">WITH RECURSIVE data_product_hierarchy(data_product_id, root) AS (
+         SELECT dp.data_product_id,
+            dp.data_product_id AS root
+           FROM data_product dp
+        UNION ALL
+         SELECT dp.data_product_id,
+            h.root
+           FROM data_product_hierarchy h,
+            data_product dp
+          WHERE (dp.parent_data_product_id = h.data_product_id)
+        )
+ SELECT dph.data_product_id,
+    su.user_id,
+        CASE
+            WHEN ((s.permission_id)::text = 'OWNER'::text) THEN 0
+            WHEN ((s.permission_id)::text = 'READ'::text) THEN 1
+            WHEN ((s.permission_id)::text = 'READ_METADATA'::text) THEN 2
+            WHEN ((s.permission_id)::text = 'WRITE'::text) THEN 3
+            WHEN ((s.permission_id)::text = 'WRITE_METADATA'::text) THEN 4
+            WHEN ((s.permission_id)::text = 'MANAGE_SHARING'::text) THEN 5
+            ELSE NULL::integer
+        END AS permission_id
+   FROM ((simple_user_sharing s
+     JOIN simple_user su ON ((su.simple_user_id = s.simple_user_id)))
+     JOIN data_product_hierarchy dph ON ((dph.root = s.data_product_id)))
+UNION
+ SELECT dph.data_product_id,
+    su.user_id,
+        CASE
+            WHEN ((s.permission_id)::text = 'OWNER'::text) THEN 0
+            WHEN ((s.permission_id)::text = 'READ'::text) THEN 1
+            WHEN ((s.permission_id)::text = 'READ_METADATA'::text) THEN 2
+            WHEN ((s.permission_id)::text = 'WRITE'::text) THEN 3
+            WHEN ((s.permission_id)::text = 'WRITE_METADATA'::text) THEN 4
+            WHEN ((s.permission_id)::text = 'MANAGE_SHARING'::text) THEN 5
+            ELSE NULL::integer
+        END AS permission_id
+   FROM (((simple_group_sharing s
+     JOIN simple_group_membership gm ON ((gm.simple_group_id = s.simple_group_id)))
+     JOIN simple_user su ON ((su.simple_user_id = gm.simple_user_id)))
+     JOIN data_product_hierarchy dph ON ((dph.root = s.data_product_id)));</createView>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-13">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="data_product" columnNames="external_id"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="external_id" constraintName="ukic2jho200vfamo1f2f7fmy4xo" tableName="data_product"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-14">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="simple_group_id, data_product_id, permission_id" constraintName="ukn0cpuerjk4gvbl6dxuk1e9907" tableName="simple_group_sharing"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="simple_group_id, data_product_id, permission_id" constraintName="ukn0cpuerjk4gvbl6dxuk1e9907" tableName="simple_group_sharing"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-15">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="user_id" constraintName="uk_44s5hv305un2lh04r4rb8nxvu" tableName="simple_user"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="user_id" constraintName="uk_44s5hv305un2lh04r4rb8nxvu" tableName="simple_user"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-16">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="simple_tenant_id, external_id" constraintName="ukdyc3ycknfa1hsxhddj4txdtp3" tableName="simple_user"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="simple_tenant_id, external_id" constraintName="ukdyc3ycknfa1hsxhddj4txdtp3" tableName="simple_user"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="simple_user_id, data_product_id, permission_id" constraintName="uk25njbkqjrn9c7n0re2o4gtras" tableName="simple_user_sharing"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="simple_user_id, data_product_id, permission_id" constraintName="uk25njbkqjrn9c7n0re2o4gtras" tableName="simple_user_sharing"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-18">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="field_name, metadata_schema_id" constraintName="uk3eem8ctj2ohmf415ecidqe4wr" tableName="metadata_schema_field"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="field_name, metadata_schema_id" constraintName="uk3eem8ctj2ohmf415ecidqe4wr" tableName="metadata_schema_field"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-19">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="external_id" constraintName="uk5xi6n7n26x9tu1bgtun924cw3" tableName="tenant"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="external_id" constraintName="uk5xi6n7n26x9tu1bgtun924cw3" tableName="tenant"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-20">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="external_id" constraintName="uk7ccp1e2mwcc7f0a43ejrc977e" tableName="simple_tenant"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="external_id" constraintName="uk7ccp1e2mwcc7f0a43ejrc977e" tableName="simple_tenant"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-21">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="tenant_id, external_id" constraintName="ukipy0etyglhd38yplpc64w41w" tableName="user_table"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="tenant_id, external_id" constraintName="ukipy0etyglhd38yplpc64w41w" tableName="user_table"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-22">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="data_product_id, permission_id, simple_tenant_id" constraintName="ukk9pb8pytl5aj2upswb725l1e" tableName="simple_public_sharing"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="data_product_id, permission_id, simple_tenant_id" constraintName="ukk9pb8pytl5aj2upswb725l1e" tableName="simple_public_sharing"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-23">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists columnNames="simple_tenant_id, external_id" constraintName="ukmrvasqtr2qbkhhxsrxod0yqgk" tableName="simple_group"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint columnNames="simple_tenant_id, external_id" constraintName="ukmrvasqtr2qbkhhxsrxod0yqgk" tableName="simple_group"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-24">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="data_product_data_product_id_seq" />
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="data_product_data_product_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-25">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="metadata_schema_field_metadata_schema_field_id"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="metadata_schema_field_metadata_schema_field_id" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-26">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="metadata_schema_metadata_schema_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="metadata_schema_metadata_schema_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-27">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="simple_group_sharing_sharing_id"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="simple_group_sharing_sharing_id" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-28">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="simple_group_simple_group_id"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="simple_group_simple_group_id" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-29">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="simple_public_sharing_sharing_id"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="simple_public_sharing_sharing_id" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-30">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="simple_tenant_simple_tenant_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="simple_tenant_simple_tenant_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-31">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="simple_user_sharing_sharing_id"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="simple_user_sharing_sharing_id" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-32">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="simple_user_simple_user_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="simple_user_simple_user_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-33">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="tenant_tenant_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="tenant_tenant_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-34">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="user_user_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="user_user_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-35">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="data_product_metadata_schema"/>
+            </not>
+        </preConditions>
+        <createTable tableName="data_product_metadata_schema">
+            <column name="data_product_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="data_product_metadata_schema_pkey"/>
+            </column>
+            <column name="metadata_schema_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="data_product_metadata_schema_pkey"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-36">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="metadata_schema"/>
+            </not>
+        </preConditions>
+        <createTable tableName="metadata_schema">
+            <column name="metadata_schema_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="metadata_schema_pkey"/>
+            </column>
+            <column name="schema_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-37">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk31wj42hnrvoimoft4h3rpxeb1" foreignKeyTableName="data_product"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="parent_data_product_id" baseTableName="data_product" constraintName="fk31wj42hnrvoimoft4h3rpxeb1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="data_product_id" referencedTableName="data_product" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-38">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk3irbxsb2nqeu1simmbarkvrst" foreignKeyTableName="simple_user"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="simple_user" constraintName="fk3irbxsb2nqeu1simmbarkvrst" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="user_id" referencedTableName="user_table" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-39">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk7ct5g9y1jbi1xqx0pr1ofy14x" foreignKeyTableName="data_product"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="owner_id" baseTableName="data_product" constraintName="fk7ct5g9y1jbi1xqx0pr1ofy14x" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="user_id" referencedTableName="user_table" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-40">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk8hp6gshw7fca3ssi8k3y5b1rh" foreignKeyTableName="simple_group_membership"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_user_id" baseTableName="simple_group_membership" constraintName="fk8hp6gshw7fca3ssi8k3y5b1rh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_user_id" referencedTableName="simple_user" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-41">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_simple_group_sharing_data_product_id" foreignKeyTableName="simple_group_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="data_product_id" baseTableName="simple_group_sharing" constraintName="fk_simple_group_sharing_data_product_id" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="data_product_id" referencedTableName="data_product" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-42">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_simple_public_sharing_data_product_id" foreignKeyTableName="simple_public_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="data_product_id" baseTableName="simple_public_sharing" constraintName="fk_simple_public_sharing_data_product_id" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="data_product_id" referencedTableName="data_product" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-43">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_simple_user_sharing_data_product_id" foreignKeyTableName="simple_user_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="data_product_id" baseTableName="simple_user_sharing" constraintName="fk_simple_user_sharing_data_product_id" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="data_product_id" referencedTableName="data_product" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-44">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fka0sl417gunldumnggjc1j8e1g" foreignKeyTableName="simple_group_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_group_id" baseTableName="simple_group_sharing" constraintName="fka0sl417gunldumnggjc1j8e1g" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_group_id" referencedTableName="simple_group" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-45">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkcvpo23bb8ho0iiy2lhqoqa434" foreignKeyTableName="simple_group_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="shared_by_user_id" baseTableName="simple_group_sharing" constraintName="fkcvpo23bb8ho0iiy2lhqoqa434" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="user_id" referencedTableName="simple_user" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-46">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkffvivk67t9h6cq7pbsyb7lle6" foreignKeyTableName="simple_group_membership"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_group_id" baseTableName="simple_group_membership" constraintName="fkffvivk67t9h6cq7pbsyb7lle6" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_group_id" referencedTableName="simple_group" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-47">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkfkhbc5eh5rcjntd244gq0r75b" foreignKeyTableName="simple_public_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_tenant_id" baseTableName="simple_public_sharing" constraintName="fkfkhbc5eh5rcjntd244gq0r75b" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_tenant_id" referencedTableName="simple_tenant" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-48">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkgwrjh23yhjde320hxk05cbwr5" foreignKeyTableName="data_product_metadata_schema"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="metadata_schema_id" baseTableName="data_product_metadata_schema" constraintName="fkgwrjh23yhjde320hxk05cbwr5" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="metadata_schema_id" referencedTableName="metadata_schema" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-49">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fki7gpmfl9n3n9y6meknbhs85ub" foreignKeyTableName="simple_group"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_tenant_id" baseTableName="simple_group" constraintName="fki7gpmfl9n3n9y6meknbhs85ub" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_tenant_id" referencedTableName="simple_tenant" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-50">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkjyta9v71gcsgsjaqe9nc8rrc7" foreignKeyTableName="simple_user_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="shared_by_user_id" baseTableName="simple_user_sharing" constraintName="fkjyta9v71gcsgsjaqe9nc8rrc7" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_user_id" referencedTableName="simple_user" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-51">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fklb8b9l60u4o0vw70107178slf" foreignKeyTableName="user_table"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="tenant_id" baseTableName="user_table" constraintName="fklb8b9l60u4o0vw70107178slf" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="tenant_id" referencedTableName="tenant" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-52">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkm9jsom9kjci2p0gglfunspehe" foreignKeyTableName="metadata_schema_field"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="metadata_schema_id" baseTableName="metadata_schema_field" constraintName="fkm9jsom9kjci2p0gglfunspehe" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="metadata_schema_id" referencedTableName="metadata_schema" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-53">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkmvx3wv4uwpc4pde5mq13cq3ag" foreignKeyTableName="simple_user"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_tenant_id" baseTableName="simple_user" constraintName="fkmvx3wv4uwpc4pde5mq13cq3ag" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_tenant_id" referencedTableName="simple_tenant" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-54">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkoje485j1yatoyng9clemujuy9" foreignKeyTableName="simple_tenant"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="tenant_id" baseTableName="simple_tenant" constraintName="fkoje485j1yatoyng9clemujuy9" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="tenant_id" referencedTableName="tenant" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-55">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkslm1ayt3o7b55dvl23in4it57" foreignKeyTableName="simple_user_sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="simple_user_id" baseTableName="simple_user_sharing" constraintName="fkslm1ayt3o7b55dvl23in4it57" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="simple_user_id" referencedTableName="simple_user" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693522030125-56">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkt4val5ex3iemqhoq0y23iohir" foreignKeyTableName="data_product_metadata_schema"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="data_product_id" baseTableName="data_product_metadata_schema" constraintName="fkt4val5ex3iemqhoq0y23iohir" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="data_product_id" referencedTableName="data_product" validate="true"/>
+    </changeSet>
+</databaseChangeLog>
