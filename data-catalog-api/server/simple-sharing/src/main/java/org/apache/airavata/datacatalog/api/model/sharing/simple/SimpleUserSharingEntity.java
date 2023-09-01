@@ -36,7 +36,7 @@ public class SimpleUserSharingEntity {
     @JoinColumn(name = "data_product_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_simple_user_sharing_data_product_id"))
     private DataProductEntity dataProduct;
 
-    @Column(name = "permission_id")
+    @Column(name = "permission_id", nullable = false)
     @Enumerated(EnumType.STRING)
     private Permission permission;
 
