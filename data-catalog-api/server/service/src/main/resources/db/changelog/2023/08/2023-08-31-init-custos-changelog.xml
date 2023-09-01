@@ -1,0 +1,184 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="mchristie31 (generated)" id="1693602493267-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="sharing"/>
+            </not>
+        </preConditions>
+        <createTable tableName="sharing">
+            <column name="id" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="sharing_pkey"/>
+            </column>
+            <column name="associating_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="associating_id_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_by" type="VARCHAR(255)"/>
+            <column name="sharing_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="VARCHAR(255)"/>
+            <column name="inherited_parent_id" type="VARCHAR(255)"/>
+            <column name="permission_type_id" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <viewExists viewName="custos_data_product_sharing_view"/>
+            </not>
+        </preConditions>
+        <createView fullDefinition="false" viewName="custos_data_product_sharing_view">SELECT dp.data_product_id,
+    u.user_id,
+        CASE
+            WHEN ((s.permission_type_id)::text = concat('OWNER', '@', s.tenant_id)) THEN 0
+            WHEN ((s.permission_type_id)::text = concat('READ', '@', s.tenant_id)) THEN 1
+            WHEN ((s.permission_type_id)::text = concat('READ_METADATA', '@', s.tenant_id)) THEN 2
+            WHEN ((s.permission_type_id)::text = concat('WRITE', '@', s.tenant_id)) THEN 3
+            WHEN ((s.permission_type_id)::text = concat('WRITE_METADATA', '@', s.tenant_id)) THEN 4
+            WHEN ((s.permission_type_id)::text = concat('MANAGE_SHARING', '@', s.tenant_id)) THEN 5
+            ELSE NULL::integer
+        END AS permission_id
+   FROM (((sharing s
+     JOIN tenant t ON (((t.external_id)::text = (s.tenant_id)::text)))
+     JOIN user_table u ON ((((u.external_id)::text = (s.associating_id)::text) AND (u.tenant_id = t.tenant_id))))
+     JOIN data_product dp ON ((concat(dp.external_id, '@', t.external_id) = (s.entity_id)::text)))
+  WHERE ((s.associating_id_type)::text = 'user'::text);</createView>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="entity"/>
+            </not>
+        </preConditions>
+        <createTable tableName="entity">
+            <column name="id" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="entity_pkey"/>
+            </column>
+            <column name="binary_data" type="OID"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_parent_id" type="VARCHAR(255)"/>
+            <column name="full_text" type="OID"/>
+            <column name="last_modified_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="original_created_time" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="owner_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_count" type="INTEGER"/>
+            <column name="tenant_id" type="VARCHAR(255)"/>
+            <column name="entity_type_id" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-4">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="entity_type"/>
+            </not>
+        </preConditions>
+        <createTable tableName="entity_type">
+            <column name="id" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="entity_type_pkey"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-5">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="permission_type"/>
+            </not>
+        </preConditions>
+        <createTable tableName="permission_type">
+            <column name="id" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="permission_type_pkey"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="external_id" type="VARCHAR(255)"/>
+            <column name="last_modified_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-6">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk1g0diy6t6b7wy3kw11n9bviwk" foreignKeyTableName="sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="permission_type_id" baseTableName="sharing" constraintName="fk1g0diy6t6b7wy3kw11n9bviwk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="permission_type" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-7">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk21ec1ub943occfcpm2jaovtsa" foreignKeyTableName="entity"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="entity_type_id" baseTableName="entity" constraintName="fk21ec1ub943occfcpm2jaovtsa" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="entity_type" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-8">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkbooud9aivdpru1fxvvnx8e3j1" foreignKeyTableName="sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="entity_id" baseTableName="sharing" constraintName="fkbooud9aivdpru1fxvvnx8e3j1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="entity" validate="true"/>
+    </changeSet>
+    <changeSet author="mchristie31 (generated)" id="1693602493267-9">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fkrr5fxkln6kyf4239te69oh140" foreignKeyTableName="sharing"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="inherited_parent_id" baseTableName="sharing" constraintName="fkrr5fxkln6kyf4239te69oh140" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="entity" validate="true"/>
+    </changeSet>
+</databaseChangeLog>
