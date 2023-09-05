@@ -35,6 +35,8 @@ github:
     - metadata
     - schema
     - search
+  collaborators:
+    - lahirujayathilake
 
   features:
     wiki: false
