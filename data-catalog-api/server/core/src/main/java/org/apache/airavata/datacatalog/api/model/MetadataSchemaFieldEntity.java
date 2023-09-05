@@ -36,6 +36,7 @@ public class MetadataSchemaFieldEntity {
     private String jsonPath;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private FieldValueType fieldValueType;
 
     @ManyToOne(optional = false)
