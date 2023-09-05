@@ -5,5 +5,5 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <include file="db/changelog/2023/08/2023-08-31-init-changelog.xml"/>
     <include file="db/changelog/2023/08/2023-08-31-init-custos-changelog.xml"/>
-    <include file="db/changelog/2023/09/2023-09-31-changelog.xml"/>
+    <include file="db/changelog/2023/09/2023-09-01-changelog.xml"/>
 </databaseChangeLog>
