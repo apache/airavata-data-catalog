@@ -215,3 +215,40 @@ service DataCatalogAPIService {
     rpc removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest) returns (DataProductRemoveFromMetadataSchemaResponse){}
     rpc searchDataProducts(DataProductSearchRequest) returns (DataProductSearchResponse){}
 }
+service SharingService {
+    rpc GrantPermissionToUser(GrantPermissionRequest) returns (GrantPermissionResponse) {}
+    rpc RevokePermissionFromUser(RevokePermissionRequest) returns (RevokePermissionResponse) {}
+    rpc GrantPermissionToGroup(GrantPermissionToGroupRequest) returns (GrantPermissionResponse) {}
+    rpc RevokePermissionFromGroup(RevokePermissionFromGroupRequest) returns (RevokePermissionResponse) {}
+}
+
+message GrantPermissionRequest {
+    UserInfo user_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+    optional UserInfo shared_by_user = 4;
+}
+
+message GrantPermissionResponse {}
+
+message RevokePermissionRequest {
+    UserInfo user_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+}
+
+message RevokePermissionResponse {}
+
+message GrantPermissionToGroupRequest {
+    GroupInfo group_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+    optional UserInfo shared_by_user = 4;
+}
+
+message RevokePermissionFromGroupRequest {
+    GroupInfo group_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+}
+
