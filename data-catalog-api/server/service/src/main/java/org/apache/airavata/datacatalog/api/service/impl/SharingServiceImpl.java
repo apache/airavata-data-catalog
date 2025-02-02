@@ -19,9 +19,9 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * 在与 DataCatalogServiceImpl 相同的 Spring Boot 应用里，
- * 用 @GRpcService 标记，使之对外暴露 SharingService 的所有 RPC 方法
- * （SearchUsers / SearchGroups / Grant/Revoke Permission 等）。
+ * In the same Spring Boot application as DataCatalogServiceImpl,
+ * mark it with @GRpcService to expose all RPC methods of SharingService 
+ * (such as SearchUsers, SearchGroups, Grant/Revoke Permission, etc.) externally.
  */
 @GRpcService
 public class SharingServiceImpl extends SharingServiceGrpc.SharingServiceImplBase {
@@ -32,14 +32,14 @@ public class SharingServiceImpl extends SharingServiceGrpc.SharingServiceImplBas
     @Override
     public void searchUsers(SearchRequest request, StreamObserver<SearchUsersResponse> responseObserver) {
         try {
-            // 从请求中提取关键字和租户ID
+            // get keyword and tenant ID
             String searchQuery = request.getQuery();
             String tenantId = request.getTenantId();
 
-            // 调用 SharingManager 的搜索逻辑
+            
             var users = sharingManager.searchUsers(searchQuery, tenantId);
 
-            // 构造并返回响应
+            
             SearchUsersResponse response = SearchUsersResponse.newBuilder()
                     .addAllUsers(users)
                     .build();
@@ -78,14 +78,14 @@ public class SharingServiceImpl extends SharingServiceGrpc.SharingServiceImplBas
     public void grantPermissionToUser(GrantPermissionRequest request,
                                       StreamObserver<GrantPermissionResponse> responseObserver) {
         try {
-            // 调用 SharingManager 授权
+            
             sharingManager.grantPermissionToUser(
                     request.getUserInfo(),
                     request.getDataProduct(),
                     request.getPermission(),
                     request.hasSharedByUser() ? request.getSharedByUser() : null
             );
-            // 构造空的成功返回
+            
             responseObserver.onNext(GrantPermissionResponse.newBuilder().build());
             responseObserver.onCompleted();
         } catch (SharingException e) {
