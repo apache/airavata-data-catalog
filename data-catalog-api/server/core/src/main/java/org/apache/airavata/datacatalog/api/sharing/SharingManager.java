@@ -7,6 +7,8 @@ import org.apache.airavata.datacatalog.api.UserInfo;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.airavata.datacatalog.api.sharing.exception.SharingException;
 
+import java.util.List;
+
 public interface SharingManager {
 
     /**
@@ -120,4 +122,21 @@ public interface SharingManager {
      * @param permission
      */
     void revokePublicAccess(DataProduct dataProduct, Permission permission) throws SharingException;
+    /**
+     * 
+     *
+     * @param searchQuery 
+     * @param tenantId    
+     * @return 
+     */
+    List<UserInfo> searchUsers(String searchQuery, String tenantId) throws SharingException;
+
+    /**
+     * 
+     *
+     * @param searchQuery 
+     * @param tenantId    
+     * @return 
+     */
+    List<GroupInfo> searchGroups(String searchQuery, String tenantId) throws SharingException;
 }
