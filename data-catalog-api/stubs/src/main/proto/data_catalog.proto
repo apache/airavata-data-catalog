@@ -129,9 +129,12 @@ message DataProductRemoveFromMetadataSchemaResponse {
 message DataProductSearchRequest {
     UserInfo user_info = 1;
     string sql = 2;
+    int32 page = 3;
+    int32 page_size = 4;
 }
 message DataProductSearchResponse {
     repeated DataProduct data_products = 1;
+    int32 total_count = 2;
 }
 
 
