@@ -129,9 +129,12 @@ message DataProductRemoveFromMetadataSchemaResponse {
 message DataProductSearchRequest {
     UserInfo user_info = 1;
     string sql = 2;
+    int32 page = 3;
+    int32 page_size = 4;
 }
 message DataProductSearchResponse {
     repeated DataProduct data_products = 1;
+    int32 total_count = 2;
 }
 
 
@@ -215,3 +218,57 @@ service DataCatalogAPIService {
     rpc removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest) returns (DataProductRemoveFromMetadataSchemaResponse){}
     rpc searchDataProducts(DataProductSearchRequest) returns (DataProductSearchResponse){}
 }
+service SharingService {
+    rpc GrantPermissionToUser(GrantPermissionRequest) returns (GrantPermissionResponse) {}
+    rpc RevokePermissionFromUser(RevokePermissionRequest) returns (RevokePermissionResponse) {}
+    rpc GrantPermissionToGroup(GrantPermissionToGroupRequest) returns (GrantPermissionResponse) {}
+    rpc RevokePermissionFromGroup(RevokePermissionFromGroupRequest) returns (RevokePermissionResponse) {}
+
+    rpc SearchUsers(SearchRequest) returns (SearchUsersResponse) {}
+    rpc SearchGroups(SearchRequest) returns (SearchGroupsResponse) {}
+
+}
+
+message GrantPermissionRequest {
+    UserInfo user_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+    optional UserInfo shared_by_user = 4;
+}
+
+message GrantPermissionResponse {}
+
+message RevokePermissionRequest {
+    UserInfo user_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+}
+
+message RevokePermissionResponse {}
+
+message GrantPermissionToGroupRequest {
+    GroupInfo group_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+    optional UserInfo shared_by_user = 4;
+}
+
+message RevokePermissionFromGroupRequest {
+    GroupInfo group_info = 1;
+    DataProduct data_product = 2;
+    Permission permission = 3;
+}
+
+message SearchRequest {
+    string query = 1; // rearch key words
+    string tenant_id = 2; 
+}
+
+message SearchUsersResponse {
+    repeated UserInfo users = 1; 
+}
+
+message SearchGroupsResponse {
+    repeated GroupInfo groups = 1; 
+}
+

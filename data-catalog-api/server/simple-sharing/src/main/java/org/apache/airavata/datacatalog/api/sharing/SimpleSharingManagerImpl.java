@@ -1,6 +1,7 @@
 package org.apache.airavata.datacatalog.api.sharing;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
@@ -289,4 +290,102 @@ public class SimpleSharingManagerImpl implements SharingManager {
         });
         return dataProductEntity;
     }
+
+    @Override
+    public List<UserInfo> searchUsers(String searchQuery, String tenantId) throws SharingException {
+        try {
+            // get tenant
+            Optional<SimpleTenantEntity> tenantOptional = simpleTenantRepository.findByExternalId(tenantId);
+
+            if (tenantOptional.isEmpty()) {
+                throw new SharingException("Tenant not found for ID: " + tenantId);
+            }
+
+            SimpleTenantEntity tenant = tenantOptional.get();
+
+            // if searchQuery is null，return all users
+            if (searchQuery == null || searchQuery.trim().isEmpty()) {
+                // use EntityManager to search
+                var queryAll = entityManager.createQuery(
+                        "SELECT u FROM SimpleUserEntity u WHERE u.simpleTenant = :tenant",
+                        SimpleUserEntity.class
+                );
+                queryAll.setParameter("tenant", tenant);
+                List<SimpleUserEntity> allUserEntities = queryAll.getResultList();
+
+                // convert to UserInfo list, return
+                return allUserEntities.stream()
+                        .map(u -> UserInfo.newBuilder()
+                                .setUserId(u.getExternalId())
+                                .setTenantId(tenant.getExternalId())
+                                .build())
+                        .toList();
+            }
+
+            // find exact match
+            Optional<SimpleUserEntity> exactMatch = simpleUserRepository.findByExternalIdAndSimpleTenant_ExternalId(searchQuery, tenant.getExternalId());
+
+            
+            List<UserInfo> users = exactMatch.map(user -> List.of(UserInfo.newBuilder()
+                            .setUserId(user.getExternalId())
+                            .setTenantId(tenant.getExternalId())
+                            .build()))
+                    .orElse(List.of());
+
+
+            return users;
+        } catch (Exception e) {
+            throw new SharingException("Failed to search users with query: " + searchQuery, e);
+        }
+    }
+    @Override
+    public List<GroupInfo> searchGroups(String searchQuery, String tenantId) throws SharingException {
+        try {
+            
+            Optional<SimpleTenantEntity> tenantOptional = simpleTenantRepository.findByExternalId(tenantId);
+
+            if (tenantOptional.isEmpty()) {
+                throw new SharingException("Tenant not found for ID: " + tenantId);
+            }
+
+            SimpleTenantEntity tenant = tenantOptional.get();
+
+            
+            if (searchQuery == null || searchQuery.trim().isEmpty()) {
+                var queryAll = entityManager.createQuery(
+                        "SELECT g FROM SimpleGroupEntity g WHERE g.simpleTenant = :tenant",
+                        SimpleGroupEntity.class
+                );
+                queryAll.setParameter("tenant", tenant);
+                List<SimpleGroupEntity> allGroups = queryAll.getResultList();
+
+                return allGroups.stream()
+                        .map(g -> GroupInfo.newBuilder()
+                                .setGroupId(g.getExternalId())
+                                .setTenantId(tenant.getExternalId())
+                                .build())
+                        .toList();
+            }
+            
+            Optional<SimpleGroupEntity> exactMatch = simpleGroupRepository.findByExternalIdAndSimpleTenant(searchQuery, tenant);
+
+            
+            List<GroupInfo> groups = exactMatch.map(group -> List.of(GroupInfo.newBuilder()
+                            .setGroupId(group.getExternalId())
+                            .setTenantId(tenant.getExternalId())
+                            .build()))
+                    .orElse(List.of());
+
+           
+
+            return groups;
+        } catch (Exception e) {
+            throw new SharingException("Failed to search groups with query: " + searchQuery, e);
+        }
+    }
+
 }
+    
+
+
+
