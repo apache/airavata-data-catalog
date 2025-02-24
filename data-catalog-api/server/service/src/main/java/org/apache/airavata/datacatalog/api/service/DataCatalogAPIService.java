@@ -194,20 +194,53 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductSearchResponse> responseObserver) {
 
         try {
+            // takeout all the DataProduct
             MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getUserInfo(),
                     request.getSql());
-            List<DataProduct> dataProducts = searchResult.dataProducts();
-            responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
+            List<DataProduct> allDataProducts = searchResult.dataProducts();
+
+            // if the frontend did not specifyp page / page_size，page=1,page_size=20
+            int page = request.getPage();
+            if (page <= 0) {
+                page = 1;
+            }
+            int pageSize = request.getPageSize();
+            if (pageSize <= 0) {
+                pageSize = 20;
+            }
+
+            // 3) make a subList
+            int totalCount = allDataProducts.size();
+            int fromIndex = (page - 1) * pageSize;
+            int toIndex = Math.min(fromIndex + pageSize, totalCount);
+            // check boundry
+            if (fromIndex > toIndex) {
+                fromIndex = 0;
+                toIndex = 0;
+            }
+            List<DataProduct> pageData = allDataProducts.subList(fromIndex, toIndex);
+
+            // return dataproduct in this page and total_count
+            DataProductSearchResponse response = DataProductSearchResponse.newBuilder()
+                .addAllDataProducts(pageData)
+                .setTotalCount(totalCount)
+                .build();
+
+            responseObserver.onNext(response);
             responseObserver.onCompleted();
+
         } catch (MetadataSchemaSqlParseException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription("Failed to parse SQL query.").asException());
         } catch (MetadataSchemaSqlValidateException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription("Failed to validate SQL query.").asException());
+        } catch (Exception e) {
+            logger.error("Error in searchDataProducts", e);
+            responseObserver
+                    .onError(Status.INTERNAL.withDescription("Internal error in searchDataProducts.").asException());
         }
-    }
-
+    }    
     @Override
     public void getMetadataSchema(MetadataSchemaGetRequest request,
             StreamObserver<MetadataSchemaGetResponse> responseObserver) {
