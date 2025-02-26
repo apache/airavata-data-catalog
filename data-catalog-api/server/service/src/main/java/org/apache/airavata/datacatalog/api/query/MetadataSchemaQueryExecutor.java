@@ -5,7 +5,10 @@ import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlValidateEx
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 
 public interface MetadataSchemaQueryExecutor {
-
+    /* 
     MetadataSchemaQueryResult execute(UserEntity userEntity, String sql)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException;
+    */ 
+    MetadataSchemaQueryResult execute(UserEntity userEntity, String sql, int page, int pageSize)
+        throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException;       
 }
