@@ -69,7 +69,7 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
     DataProductMapper dataProductMapper;
 
     @Override
-    public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql)
+    public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql, int page, int pageSize)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
 
         // Create a schema that contains the data_product table and all of the metadata
@@ -167,6 +167,17 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
                 tableAliases);
         logger.debug("Metadata schema query final sql: {}", finalSql);
 
+        // total count
+        String countSql = "SELECT COUNT(*) FROM (" + finalSql + ") as count_alias";
+        Number countResult = (Number) entityManager.createNativeQuery(countSql).getSingleResult();
+        int totalCount = countResult.intValue();
+
+        if (page > 0 && pageSize >0) {
+        // offset
+        int offset = (page - 1) * pageSize;
+        finalSql = finalSql + " LIMIT " + pageSize + " OFFSET " + offset;
+        }
+
         List<DataProductEntity> dataProductEntities = entityManager.createNativeQuery(finalSql, DataProductEntity.class)
                 .getResultList();
 
@@ -177,8 +188,7 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
             dataProductMapper.mapEntityToModel(dataProductEntity, dpBuilder);
             dataProducts.add(dpBuilder.build());
         }
-
-        return new MetadataSchemaQueryResult(dataProducts);
+        return new MetadataSchemaQueryResult(dataProducts, totalCount);
     }
 
     private SqlValidator getValidator(SchemaPlus schema, FrameworkConfig config, Planner planner) {

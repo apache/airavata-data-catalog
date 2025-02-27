@@ -194,17 +194,25 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductSearchResponse> responseObserver) {
 
         try {
-            MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getUserInfo(),
-                    request.getSql());
+            MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(
+                    request.getUserInfo(),
+                    request.getSql(),
+                    request.getPage(),
+                    request.getPageSize()
+            );
             List<DataProduct> dataProducts = searchResult.dataProducts();
-            responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
+            int totalCount = searchResult.totalCount();
+            responseObserver.onNext(
+                    DataProductSearchResponse.newBuilder()
+                            .addAllDataProducts(dataProducts)
+                            .setTotalCount(totalCount)
+                            .build()
+            );
             responseObserver.onCompleted();
         } catch (MetadataSchemaSqlParseException e) {
-            responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Failed to parse SQL query.").asException());
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Failed to parse SQL query.").asException());
         } catch (MetadataSchemaSqlValidateException e) {
-            responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Failed to validate SQL query.").asException());
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Failed to validate SQL query.").asException());
         }
     }
 

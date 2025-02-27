@@ -4,6 +4,5 @@ import java.util.List;
 
 import org.apache.airavata.datacatalog.api.DataProduct;
 
-public record MetadataSchemaQueryResult(List<DataProduct> dataProducts) {
-
+public record MetadataSchemaQueryResult(List<DataProduct> dataProducts, int totalCount) {
 }
