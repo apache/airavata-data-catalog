@@ -172,10 +172,11 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
         Number countResult = (Number) entityManager.createNativeQuery(countSql).getSingleResult();
         int totalCount = countResult.intValue();
 
+        if (page > 0 && pageSize >0) {
         // offset
         int offset = (page - 1) * pageSize;
         finalSql = finalSql + " LIMIT " + pageSize + " OFFSET " + offset;
-
+        }
 
         List<DataProductEntity> dataProductEntities = entityManager.createNativeQuery(finalSql, DataProductEntity.class)
                 .getResultList();
