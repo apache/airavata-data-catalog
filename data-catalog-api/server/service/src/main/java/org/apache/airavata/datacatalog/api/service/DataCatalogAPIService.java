@@ -188,26 +188,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asException());
         }
     }
-    /*
-    @Override
-    public void searchDataProducts(DataProductSearchRequest request,
-            StreamObserver<DataProductSearchResponse> responseObserver) {
 
-        try {
-            MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(request.getUserInfo(),
-                    request.getSql());
-            List<DataProduct> dataProducts = searchResult.dataProducts();
-            responseObserver.onNext(DataProductSearchResponse.newBuilder().addAllDataProducts(dataProducts).build());
-            responseObserver.onCompleted();
-        } catch (MetadataSchemaSqlParseException e) {
-            responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Failed to parse SQL query.").asException());
-        } catch (MetadataSchemaSqlValidateException e) {
-            responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Failed to validate SQL query.").asException());
-        }
-    }
-    */
     @Override
     public void searchDataProducts(DataProductSearchRequest request,
             StreamObserver<DataProductSearchResponse> responseObserver) {
