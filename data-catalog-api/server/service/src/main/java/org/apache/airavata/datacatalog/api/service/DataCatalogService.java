@@ -46,7 +46,6 @@ public interface DataCatalogService {
 
     MetadataSchemaField updateMetadataSchemaField(MetadataSchemaField metadataSchemaField);
 
-    //MetadataSchemaQueryResult searchDataProducts(UserInfo userInfo, String sql)
     MetadataSchemaQueryResult searchDataProducts(UserInfo userInfo, String sql, int page, int pageSize)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException;
 }

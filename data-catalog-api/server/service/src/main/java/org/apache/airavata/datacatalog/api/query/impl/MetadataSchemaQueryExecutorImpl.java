@@ -69,7 +69,6 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
     DataProductMapper dataProductMapper;
 
     @Override
-    //public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql)
     public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql, int page, int pageSize)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
 
@@ -188,8 +187,6 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
             dataProductMapper.mapEntityToModel(dataProductEntity, dpBuilder);
             dataProducts.add(dpBuilder.build());
         }
-
-        //return new MetadataSchemaQueryResult(dataProducts);
         return new MetadataSchemaQueryResult(dataProducts, totalCount);
     }
 
