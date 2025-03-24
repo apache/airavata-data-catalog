@@ -74,19 +74,55 @@ public class SimpleSharingManagerImpl implements SharingManager {
         SimpleUserEntity simpleUser = resolveSimpleUser(userInfo);
         return simpleUser.getUser();
     }
-
     @Override
     public boolean userHasAccess(UserInfo userInfo, DataProduct dataProduct, Permission permission)
             throws SharingException {
         UserEntity user = resolveUser(userInfo);
         DataProductEntity dataProductEntity = resolveDataProduct(dataProduct);
-        Query query = entityManager.createNativeQuery("select 1 from " + getDataProductSharingView()
-                + " where user_id = :user_id and data_product_id = :data_product_id and permission_id in :permission_id");
-        query.setParameter("user_id", user.getUserId());
-        query.setParameter("data_product_id", dataProductEntity.getDataProductId());
-        query.setParameter("permission_id", Arrays.asList(permission.getNumber(), Permission.OWNER.getNumber()));
 
-        return query.getResultList().size() > 0;
+        Query userQuery = entityManager.createNativeQuery(
+                "SELECT 1 " +
+                        "  FROM " + getDataProductSharingView() +
+                        " WHERE user_id = :user_id " +
+                        "   AND data_product_id = :dp_id " +
+                        "   AND permission_id IN (:perm_ids_int)"
+        );
+        userQuery.setParameter("user_id", user.getUserId());
+        userQuery.setParameter("dp_id", dataProductEntity.getDataProductId());
+        userQuery.setParameter("perm_ids_int",
+                Arrays.asList(permission.getNumber(), Permission.OWNER.getNumber())
+        );
+
+        boolean userHasPerm = !userQuery.getResultList().isEmpty();
+        if (userHasPerm) {
+            return true;
+        }
+
+        // (simple_group_sharing)
+        // permission_id is character varying->permission.name()
+        if (userInfo.getGroupIdsCount() > 0) {
+            Query groupQuery = entityManager.createNativeQuery(
+                    "SELECT 1 " +
+                            "  FROM simple_group_sharing sgs " +
+                            "  JOIN simple_group g ON sgs.simple_group_id = g.simple_group_id " +
+                            " WHERE sgs.data_product_id = :dp_id " +
+                            "   AND sgs.permission_id IN (:perm_ids_str) " +
+                            "   AND g.external_id IN (:group_external_ids)"
+            );
+            groupQuery.setParameter("dp_id", dataProductEntity.getDataProductId());
+            // .name()->"READ" / "OWNER"
+            groupQuery.setParameter("perm_ids_str",
+                    Arrays.asList(permission.name(), Permission.OWNER.name())
+            );
+            // group_ids is simple_group.external_id
+            groupQuery.setParameter("group_external_ids", userInfo.getGroupIdsList());
+
+            boolean groupHasPerm = !groupQuery.getResultList().isEmpty();
+            if (groupHasPerm) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

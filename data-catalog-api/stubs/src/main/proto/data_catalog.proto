@@ -32,6 +32,7 @@ message UserInfo {
      * is integrated with.
      */
     optional string tenant_id = 2;
+    repeated string group_ids = 3;
 }
 
 message GroupInfo {
@@ -219,4 +220,22 @@ service DataCatalogAPIService {
     rpc addDataProductToMetadataSchema(DataProductAddToMetadataSchemaRequest) returns (DataProductAddToMetadataSchemaResponse){}
     rpc removeDataProductFromMetadataSchema(DataProductRemoveFromMetadataSchemaRequest) returns (DataProductRemoveFromMetadataSchemaResponse){}
     rpc searchDataProducts(DataProductSearchRequest) returns (DataProductSearchResponse){}
+
+    rpc GrantPermissionToUser (GrantPermissionToUserRequest) returns (GrantPermissionToUserResponse) {}
+    rpc GrantPermissionToGroup (GrantPermissionToGroupRequest) returns (GrantPermissionToGroupResponse) {}
 }
+message GrantPermissionToUserRequest {
+    UserInfo user_info = 1;        // 发起这个RPC请求的用户(当前登录者)
+    UserInfo target_user = 2;      // 要被赋予权限的用户
+    string data_product_id = 3;    // 要分享的 DataProduct ID
+    Permission permission = 4;     // e.g. READ, WRITE, OWNER...
+}
+message GrantPermissionToUserResponse {}
+
+message GrantPermissionToGroupRequest {
+    UserInfo user_info = 1;
+    GroupInfo target_group = 2;
+    string data_product_id = 3;
+    Permission permission = 4;
+}
+message GrantPermissionToGroupResponse {}

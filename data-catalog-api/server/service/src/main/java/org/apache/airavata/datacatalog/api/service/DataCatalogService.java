@@ -48,4 +48,6 @@ public interface DataCatalogService {
 
     MetadataSchemaQueryResult searchDataProducts(UserInfo userInfo, String sql, int page, int pageSize)
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException;
+    MetadataSchemaQueryResult searchDataProducts(UserInfo userInfo,List<String> groupIds, String sql, int page, int pageSize)
+            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException;
 }

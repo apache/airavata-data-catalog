@@ -54,6 +54,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
+import org.apache.airavata.datacatalog.api.GrantPermissionToUserRequest;
+import org.apache.airavata.datacatalog.api.GrantPermissionToUserResponse;
+import org.apache.airavata.datacatalog.api.GrantPermissionToGroupRequest;
+import org.apache.airavata.datacatalog.api.GrantPermissionToGroupResponse;
+
 @GRpcService
 public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalogAPIServiceImplBase {
 
@@ -194,8 +199,10 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductSearchResponse> responseObserver) {
 
         try {
+            List<String> groupIds = request.getUserInfo().getGroupIdsList();
             MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(
                     request.getUserInfo(),
+                    groupIds,
                     request.getSql(),
                     request.getPage(),
                     request.getPageSize()
@@ -336,4 +343,62 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         return false;
     }
 
+    @Override
+    public void grantPermissionToUser(GrantPermissionToUserRequest request,
+                                      StreamObserver<GrantPermissionToUserResponse> responseObserver) {
+
+        try {
+
+            DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+
+            sharingManager.grantPermissionToUser(
+                    request.getTargetUser(),        // target user
+                    dataProduct,                    // data product
+                    request.getPermission(),        // READ or WRITE or ...
+                    request.getUserInfo()           // sharedByUser
+            );
+
+            // 4) 返回空对象即可
+            responseObserver.onNext(GrantPermissionToUserResponse.getDefaultInstance());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            // data product 不存在
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(e.getMessage()).asException());
+        } catch (Exception e) {
+            logger.error("Failed to grant permission to user", e);
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription(e.getMessage()).asException());
+        }
+    }
+
+    @Override
+    public void grantPermissionToGroup(GrantPermissionToGroupRequest request,
+                                       StreamObserver<GrantPermissionToGroupResponse> responseObserver) {
+
+        try {
+            DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
+
+            if (!checkHasPermission(request.getUserInfo(), dataProduct, Permission.OWNER, responseObserver)) {
+                return;
+            }
+
+            sharingManager.grantPermissionToGroup(
+                    request.getTargetGroup(),
+                    dataProduct,
+                    request.getPermission(),
+                    request.getUserInfo()  // sharedByUser
+            );
+
+            responseObserver.onNext(GrantPermissionToGroupResponse.getDefaultInstance());
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException e) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(e.getMessage()).asException());
+        } catch (Exception e) {
+            logger.error("Failed to grant permission to group", e);
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription(e.getMessage()).asException());
+        }
+    }
 }

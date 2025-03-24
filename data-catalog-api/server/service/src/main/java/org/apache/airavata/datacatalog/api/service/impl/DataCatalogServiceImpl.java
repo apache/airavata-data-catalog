@@ -132,6 +132,16 @@ public class DataCatalogServiceImpl implements DataCatalogService {
             throw new RuntimeException("Unable to resolve " + userInfo, e);
         }
     }
+    @Override
+    public MetadataSchemaQueryResult searchDataProducts(UserInfo userInfo, List<String> groupIds, String sql, int page, int pageSize
+    ) throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
+        try {
+            UserEntity userEntity = sharingManager.resolveUser(userInfo);
+            return metadataSchemaQueryExecutor.execute(userEntity, groupIds, sql, page, pageSize);
+        } catch (SharingException e) {
+            throw new RuntimeException("Unable to resolve " + userInfo, e);
+        }
+    }
 
     @Override
     public MetadataSchema getMetadataSchema(String schemaName) {
