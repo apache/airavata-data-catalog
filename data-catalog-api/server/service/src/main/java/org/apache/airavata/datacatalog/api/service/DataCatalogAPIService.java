@@ -357,12 +357,9 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
                     request.getPermission(),        // READ or WRITE or ...
                     request.getUserInfo()           // sharedByUser
             );
-
-            // 4) 返回空对象即可
             responseObserver.onNext(GrantPermissionToUserResponse.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
-            // data product 不存在
             responseObserver.onError(Status.NOT_FOUND
                     .withDescription(e.getMessage()).asException());
         } catch (Exception e) {

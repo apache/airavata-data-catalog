@@ -241,8 +241,6 @@ String writeCommonTableExpressions(UserEntity userEntity,
         String cteForSchema = writeCommonTableExpression(userEntity, metadataSchema);
         ctes.add(cteForSchema);
     }
-
-    // 3) 组装
     sb.append("WITH ");
     sb.append(String.join(", ", ctes));
     return sb.toString();
