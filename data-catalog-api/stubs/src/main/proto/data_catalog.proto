@@ -225,10 +225,10 @@ service DataCatalogAPIService {
     rpc GrantPermissionToGroup (GrantPermissionToGroupRequest) returns (GrantPermissionToGroupResponse) {}
 }
 message GrantPermissionToUserRequest {
-    UserInfo user_info = 1;        // 发起这个RPC请求的用户(当前登录者)
-    UserInfo target_user = 2;      // 要被赋予权限的用户
-    string data_product_id = 3;    // 要分享的 DataProduct ID
-    Permission permission = 4;     // e.g. READ, WRITE, OWNER...
+    UserInfo user_info = 1;    // current user
+    UserInfo target_user = 2;
+    string data_product_id = 3;
+    Permission permission = 4;
 }
 message GrantPermissionToUserResponse {}
 
