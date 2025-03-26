@@ -11,6 +11,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.List;
+import java.util.ArrayList;
+import jakarta.persistence.Transient;
 
 @Entity
 // 'user' is a reserved word, so naming this table 'user_table'
@@ -38,6 +41,12 @@ public class UserEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false, updatable = false)
     private TenantEntity tenant;
+
+    @Transient
+    private List<String> groupIds = new ArrayList<>();
+    public List<String> getGroupIds() {
+        return groupIds;
+    }
 
     public Long getUserId() {
         return userId;

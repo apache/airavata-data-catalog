@@ -199,10 +199,8 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             StreamObserver<DataProductSearchResponse> responseObserver) {
 
         try {
-            List<String> groupIds = request.getUserInfo().getGroupIdsList();
             MetadataSchemaQueryResult searchResult = dataCatalogService.searchDataProducts(
                     request.getUserInfo(),
-                    groupIds,
                     request.getSql(),
                     request.getPage(),
                     request.getPageSize()

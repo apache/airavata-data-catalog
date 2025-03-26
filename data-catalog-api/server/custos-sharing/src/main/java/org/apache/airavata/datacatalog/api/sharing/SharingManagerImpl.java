@@ -133,7 +133,9 @@ public class SharingManagerImpl implements SharingManager {
         Optional<UserEntity> maybeUserEntity = userRepository.findByExternalIdAndTenant_ExternalId(userInfo.getUserId(),
                 userInfo.getTenantId());
         if (maybeUserEntity.isPresent()) {
-            return maybeUserEntity.get();
+            UserEntity userEntity = maybeUserEntity.get();
+            userEntity.setGroupIds(userInfo.getGroupIdsList());
+            return userEntity;
         } else {
             try (UserManagementClient userManagementClient = custosClientProvider.getUserManagementClient()) {
                 FindUsersResponse findUsersResponse = userManagementClient.findUsers(userInfo.getTenantId(),
@@ -146,6 +148,7 @@ public class SharingManagerImpl implements SharingManager {
                     userEntity.setExternalId(userProfile.getUsername());
                     userEntity.setName(userProfile.getUsername());
                     userEntity.setTenant(tenantEntity);
+                    userEntity.setGroupIds(userInfo.getGroupIdsList());
                     return userRepository.save(userEntity);
                 } else {
                     throw new SharingException("User " + userInfo.getUserId() + " in tenant "

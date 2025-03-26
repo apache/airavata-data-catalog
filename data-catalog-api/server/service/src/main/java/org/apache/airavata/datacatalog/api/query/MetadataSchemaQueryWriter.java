@@ -6,7 +6,6 @@ import java.util.Map;
 import org.apache.airavata.datacatalog.api.model.MetadataSchemaEntity;
 import org.apache.airavata.datacatalog.api.model.UserEntity;
 import org.apache.calcite.sql.SqlNode;
-import java.util.List;
 
 public interface MetadataSchemaQueryWriter {
 
@@ -22,11 +21,4 @@ public interface MetadataSchemaQueryWriter {
      */
     String rewriteQuery(UserEntity userEntity, SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
             Map<String, String> tableAliases);
-    String rewriteQuery(
-            UserEntity userEntity,
-            SqlNode sqlNode,
-            Collection<MetadataSchemaEntity> metadataSchemas,
-            Map<String, String> tableAliases,
-            List<String> groupIds
-    );
 }

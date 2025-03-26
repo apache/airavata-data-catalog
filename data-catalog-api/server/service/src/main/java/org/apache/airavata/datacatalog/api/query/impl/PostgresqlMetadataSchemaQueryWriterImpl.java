@@ -159,13 +159,11 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
     @Override
     public String rewriteQuery(UserEntity userEntity, SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
                                Map<String, String> tableAliases) {
-        List<String> groupIds = java.util.Collections.emptyList();
-        return writeCommonTableExpressions(userEntity, metadataSchemas, groupIds) + buildSelectStatement(sqlNode, metadataSchemas, tableAliases);
-    }
-    @Override
-    public String rewriteQuery(UserEntity userEntity, SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
-                               Map<String, String> tableAliases, List<String> groupIds) {
-        return writeCommonTableExpressions(userEntity, metadataSchemas, groupIds) + buildSelectStatement(sqlNode, metadataSchemas, tableAliases);
+        List<String> groupIds = userEntity.getGroupIds();
+        if (groupIds == null) {
+            groupIds = java.util.Collections.emptyList();
+        }
+        return writeCommonTableExpressions(userEntity, metadataSchemas) + buildSelectStatement(sqlNode, metadataSchemas, tableAliases);
     }
 
     private String buildSelectStatement(SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
@@ -198,13 +196,11 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
         sqlNode.accept(filterRewriter);
         return filterRewriter.finalizeSql();
     }
-String writeCommonTableExpressions(UserEntity userEntity,
-                                   Collection<MetadataSchemaEntity> metadataSchemas,
-                                   List<String> groupIds) {
+String writeCommonTableExpressions(UserEntity userEntity, Collection<MetadataSchemaEntity> metadataSchemas) {
     StringBuilder sb = new StringBuilder();
     List<String> ctes = new ArrayList<>();
     long userDbId = userEntity.getUserId(); // userEntity -> user -> getUserId()
-
+    List<String> groupIds = userEntity.getGroupIds();
     // user_group_union CTE
     // (simple_data_product_sharing_view, integer)
     //union (simple_group_sharing, varchar)
