@@ -222,7 +222,7 @@ String writeCommonTableExpressions(UserEntity userEntity, Collection<MetadataSch
         unionCte.append(" UNION SELECT sgs.data_product_id ")
                 .append(" FROM simple_group_sharing sgs ")
                 .append(" JOIN simple_group g ON g.simple_group_id = sgs.simple_group_id ")
-                .append(" WHERE sgs.permission_id IN ('OWNER','READ') ")
+                .append(" WHERE sgs.permission_id IN ('READ') ")
                 .append("   AND g.external_id IN (");
         for (int i = 0; i < groupIds.size(); i++) {
             if (i > 0) unionCte.append(",");
