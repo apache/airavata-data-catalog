@@ -176,6 +176,7 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
                 sb.append(" WHERE ");
                 sb.append(rewriteWhereClauseFilters(sqlNode, metadataSchemas, tableAliases));
             }
+            sb.append(" ORDER BY data_product_id DESC ");
         } else if (sqlNode instanceof SqlBasicCall unionNode &&
                 ((SqlBasicCall) sqlNode).getOperator().getKind() == SqlKind.UNION) {
 
