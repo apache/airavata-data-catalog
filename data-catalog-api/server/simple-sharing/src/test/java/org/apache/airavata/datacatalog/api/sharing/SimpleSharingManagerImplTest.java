@@ -472,6 +472,7 @@ public class SimpleSharingManagerImplTest {
         }
 
     }
+
     /**
      * This test ensures a user who is the sole owner of a data product always has OWNER permission,
      * even if they belong to no groups.
@@ -592,6 +593,7 @@ public class SimpleSharingManagerImplTest {
         assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ),
                 "User with no group or direct permission should not have READ access");
     }
+
     /**
      * Test that a user with only userId (i.e. no groupIds provided)
      * can see the data product they own.
@@ -714,8 +716,6 @@ public class SimpleSharingManagerImplTest {
         assertFalse(simpleSharingManagerImpl.userHasAccess(nonMemberUser, dataProduct, Permission.READ),
                 "User not a member of the group should not see group shared data product");
     }
-
-
 
 
 }

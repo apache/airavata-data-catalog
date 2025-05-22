@@ -11,8 +11,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
 import java.util.List;
 import java.util.ArrayList;
+
 import jakarta.persistence.Transient;
 
 @Entity
@@ -44,6 +46,7 @@ public class UserEntity {
 
     @Transient
     private List<String> groupIds = new ArrayList<>();
+
     public List<String> getGroupIds() {
         return groupIds;
     }

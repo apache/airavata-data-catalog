@@ -350,10 +350,10 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
 
             sharingManager.grantPermissionToUser(
-                    request.getTargetUser(),        // target user
-                    dataProduct,                    // data product
-                    request.getPermission(),        // READ or WRITE or ...
-                    request.getUserInfo()           // sharedByUser
+                    request.getTargetUser(),
+                    dataProduct,
+                    request.getPermission(),
+                    request.getUserInfo()
             );
             responseObserver.onNext(GrantPermissionToUserResponse.getDefaultInstance());
             responseObserver.onCompleted();
@@ -382,7 +382,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
                     request.getTargetGroup(),
                     dataProduct,
                     request.getPermission(),
-                    request.getUserInfo()  // sharedByUser
+                    request.getUserInfo()
             );
 
             responseObserver.onNext(GrantPermissionToGroupResponse.getDefaultInstance());

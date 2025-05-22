@@ -74,6 +74,7 @@ public class SimpleSharingManagerImpl implements SharingManager {
         SimpleUserEntity simpleUser = resolveSimpleUser(userInfo);
         return simpleUser.getUser();
     }
+
     @Override
     public boolean userHasAccess(UserInfo userInfo, DataProduct dataProduct, Permission permission)
             throws SharingException {
@@ -98,8 +99,6 @@ public class SimpleSharingManagerImpl implements SharingManager {
             return true;
         }
 
-        // (simple_group_sharing)
-        // permission_id is character varying->permission.name()
         if (userInfo.getGroupIdsCount() > 0) {
             Query groupQuery = entityManager.createNativeQuery(
                     "SELECT 1 " +
@@ -110,11 +109,9 @@ public class SimpleSharingManagerImpl implements SharingManager {
                             "   AND g.external_id IN (:group_external_ids)"
             );
             groupQuery.setParameter("dp_id", dataProductEntity.getDataProductId());
-            // .name()->"READ" / "OWNER"
             groupQuery.setParameter("perm_ids_str",
                     Arrays.asList(permission.name(), Permission.OWNER.name())
             );
-            // group_ids is simple_group.external_id
             groupQuery.setParameter("group_external_ids", userInfo.getGroupIdsList());
 
             boolean groupHasPerm = !groupQuery.getResultList().isEmpty();
