@@ -160,10 +160,6 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
     @Override
     public String rewriteQuery(UserEntity userEntity, SqlNode sqlNode, Collection<MetadataSchemaEntity> metadataSchemas,
                                Map<String, String> tableAliases) {
-        List<String> groupIds = userEntity.getGroupIds();
-        if (groupIds == null) {
-            groupIds = java.util.Collections.emptyList();
-        }
         return writeCommonTableExpressions(userEntity, metadataSchemas) + buildSelectStatement(sqlNode, metadataSchemas, tableAliases);
     }
 

@@ -115,9 +115,7 @@ public class SimpleSharingManagerImpl implements SharingManager {
             groupQuery.setParameter("group_external_ids", userInfo.getGroupIdsList());
 
             boolean groupHasPerm = !groupQuery.getResultList().isEmpty();
-            if (groupHasPerm) {
-                return true;
-            }
+            return groupHasPerm;
         }
         return false;
     }

@@ -2,6 +2,10 @@ package org.apache.airavata.datacatalog.api.service;
 
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+
 import org.apache.airavata.datacatalog.api.DataCatalogAPIServiceGrpc;
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.DataProductAddToMetadataSchemaRequest;
@@ -50,6 +54,7 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -58,6 +63,11 @@ import org.apache.airavata.datacatalog.api.GrantPermissionToUserRequest;
 import org.apache.airavata.datacatalog.api.GrantPermissionToUserResponse;
 import org.apache.airavata.datacatalog.api.GrantPermissionToGroupRequest;
 import org.apache.airavata.datacatalog.api.GrantPermissionToGroupResponse;
+import org.apache.airavata.datacatalog.api.GrantPermissionToUserOnAllRequest;
+import org.apache.airavata.datacatalog.api.GrantPermissionToUserOnAllResponse;
+import org.apache.airavata.datacatalog.api.GrantPermissionToGroupOnAllRequest;
+import org.apache.airavata.datacatalog.api.GrantPermissionToGroupOnAllResponse;
+
 
 @GRpcService
 public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalogAPIServiceImplBase {
@@ -69,6 +79,9 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
 
     @Autowired
     SharingManager sharingManager;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public void createDataProduct(DataProductCreateRequest request,
@@ -358,6 +371,8 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onNext(GrantPermissionToUserResponse.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
+            logger.error("grantPermissionToUser: dataProduct({}) not found, sharedByUser={}",
+                    request.getDataProductId(), request.getUserInfo(), e);
             responseObserver.onError(Status.NOT_FOUND
                     .withDescription(e.getMessage()).asException());
         } catch (Exception e) {
@@ -388,6 +403,8 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
             responseObserver.onNext(GrantPermissionToGroupResponse.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (EntityNotFoundException e) {
+            logger.error("grantPermissionToGroup: dataProduct({}) not found, sharedByGroup={}",
+                    request.getDataProductId(), request.getTargetGroup(), e);
             responseObserver.onError(Status.NOT_FOUND
                     .withDescription(e.getMessage()).asException());
         } catch (Exception e) {
@@ -396,4 +413,150 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
                     .withDescription(e.getMessage()).asException());
         }
     }
+
+    @Override
+    @Transactional
+    public void grantPermissionToUserOnAll(GrantPermissionToUserOnAllRequest req,
+                                           StreamObserver<GrantPermissionToUserOnAllResponse> resp) {
+
+        try {
+            long actingUserId = sharingManager.resolveUser(req.getUserInfo()).getUserId();
+            int permId = req.getPermission().getNumber();
+            int ownerId = Permission.OWNER.getNumber();
+
+            String permName = req.getPermission().name();
+
+            entityManager.createNativeQuery(
+                    "CREATE TEMP SEQUENCE IF NOT EXISTS temp_sharing_id_seq").executeUpdate();
+
+
+            entityManager.createNativeQuery("""
+                        SELECT setval(
+                               'temp_sharing_id_seq',
+                              CAST(extract(epoch from clock_timestamp())*1000 AS bigint),
+                               false)                    
+                    """).getSingleResult();
+            String sql = """
+                    INSERT INTO simple_user_sharing (sharing_id,
+                                                     data_product_id,
+                                                     permission_id,
+                                                     shared_by_user_id,
+                                                     simple_user_id)
+                    SELECT nextval('temp_sharing_id_seq'),
+                           v.data_product_id,
+                           CAST(:perm AS varchar),
+                           :actingSid,
+                           su.simple_user_id
+                    FROM (
+                    
+                        SELECT DISTINCT data_product_id
+                        FROM simple_data_product_sharing_view
+                        WHERE user_id       = :actingUid
+                          AND permission_id IN (:owner, :read)
+                    ) v
+                    
+                    JOIN simple_user   su ON su.external_id   = :userExt
+                    JOIN simple_tenant t  ON t.simple_tenant_id = su.simple_tenant_id
+                                         AND t.external_id      = :tenantExt
+                    
+                    
+                    ON CONFLICT (simple_user_id, data_product_id, permission_id) DO NOTHING
+                    """;
+
+
+            Query q = entityManager.createNativeQuery(sql)
+                    .setParameter("perm", permName)
+                    .setParameter("actingSid", actingUserId)
+                    .setParameter("actingUid", actingUserId)
+                    .setParameter("owner", ownerId)
+                    .setParameter("read", permId)
+                    .setParameter("userExt", req.getTargetUser().getUserId())
+                    .setParameter("tenantExt", req.getTargetUser().getTenantId());
+
+            int inserted = q.executeUpdate();
+
+            logger.info("bulk-shared {} products with user {}",
+                    inserted, req.getTargetUser().getUserId());
+
+            resp.onNext(GrantPermissionToUserOnAllResponse.getDefaultInstance());
+            resp.onCompleted();
+
+        } catch (SharingException ex) {
+            logger.error("share-all to user failed", ex);
+            resp.onError(Status.INTERNAL.withDescription(ex.getMessage())
+                    .asRuntimeException());
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void grantPermissionToGroupOnAll(GrantPermissionToGroupOnAllRequest req,
+                                            StreamObserver<GrantPermissionToGroupOnAllResponse> resp) {
+
+        try {
+            long actingUserId = sharingManager.resolveUser(req.getUserInfo()).getUserId();
+            int ownerId = Permission.OWNER.getNumber();
+
+            String permName = req.getPermission().name();
+            entityManager.createNativeQuery(
+                            "CREATE TEMP SEQUENCE IF NOT EXISTS temp_sharing_id_seq")
+                    .executeUpdate();
+
+            entityManager.createNativeQuery("""
+                        SELECT setval(
+                               'temp_sharing_id_seq',
+                               CAST(extract(epoch from clock_timestamp())*1000 AS bigint),
+                               false)
+                    """).getSingleResult();
+
+            String sql = """
+                    INSERT INTO simple_group_sharing (sharing_id, data_product_id, permission_id,
+                                                      shared_by_user_id, simple_group_id)
+                    
+                    SELECT nextval('temp_sharing_id_seq'),
+                           v.data_product_id, :perm, :actingSid, g.simple_group_id
+                    FROM (
+                        SELECT DISTINCT data_product_id
+                        FROM   simple_data_product_sharing_view
+                        WHERE  user_id       = :actingUid
+                          AND  permission_id IN (:owner, :read)     
+                    ) v
+                    JOIN simple_group  g ON g.external_id     = :groupExt
+                    JOIN simple_tenant t ON t.simple_tenant_id = g.simple_tenant_id
+                                        AND t.external_id      = :tenantExt
+                    
+                    WHERE NOT EXISTS (
+                          SELECT 1 FROM simple_group_sharing s
+                           WHERE s.simple_group_id = g.simple_group_id
+                             AND s.data_product_id = v.data_product_id
+                             AND s.permission_id   = :perm
+                    )
+                    """;
+
+            Query q = entityManager.createNativeQuery(sql)
+                    .setParameter("perm", permName)
+                    .setParameter("actingSid", actingUserId)
+                    .setParameter("actingUid", actingUserId)
+                    .setParameter("owner", ownerId)
+                    .setParameter("read", req.getPermission().getNumber())
+                    .setParameter("groupExt", req.getTargetGroup().getGroupId())
+                    .setParameter("tenantExt", req.getTargetGroup().getTenantId());
+            int inserted = q.executeUpdate();
+
+            logger.info("bulk-shared {} products with group {}", inserted,
+                    req.getTargetGroup().getGroupId());
+
+            resp.onNext(GrantPermissionToGroupOnAllResponse.getDefaultInstance());
+            resp.onCompleted();
+
+        } catch (SharingException ex) {
+            logger.error("share-all to group failed", ex);
+            resp.onError(Status.INTERNAL
+                    .withDescription(ex.getMessage())
+                    .asRuntimeException());
+        }
+    }
+
+
 }

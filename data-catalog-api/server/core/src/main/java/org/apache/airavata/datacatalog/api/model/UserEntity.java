@@ -55,6 +55,10 @@ public class UserEntity {
         return userId;
     }
 
+    public void setGroupIds(List<String> groupIds) {
+        this.groupIds = groupIds;
+    }
+
     public void setUserId(Long userId) {
         this.userId = userId;
     }

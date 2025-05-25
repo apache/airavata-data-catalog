@@ -223,9 +223,14 @@ service DataCatalogAPIService {
 
     rpc GrantPermissionToUser (GrantPermissionToUserRequest) returns (GrantPermissionToUserResponse) {}
     rpc GrantPermissionToGroup (GrantPermissionToGroupRequest) returns (GrantPermissionToGroupResponse) {}
+
+    rpc GrantPermissionToUserOnAll (GrantPermissionToUserOnAllRequest)
+        returns (GrantPermissionToUserOnAllResponse);
+    rpc GrantPermissionToGroupOnAll (GrantPermissionToGroupOnAllRequest)
+        returns (GrantPermissionToGroupOnAllResponse);
 }
 message GrantPermissionToUserRequest {
-    UserInfo user_info = 1;    // current user
+    UserInfo user_info = 1;
     UserInfo target_user = 2;
     string data_product_id = 3;
     Permission permission = 4;
@@ -239,3 +244,19 @@ message GrantPermissionToGroupRequest {
     Permission permission = 4;
 }
 message GrantPermissionToGroupResponse {}
+
+message GrantPermissionToUserOnAllRequest {
+    UserInfo user_info = 1;
+    UserInfo target_user = 2;
+    Permission permission = 3;
+}
+
+message GrantPermissionToUserOnAllResponse {}
+
+message GrantPermissionToGroupOnAllRequest {
+    UserInfo user_info = 1;
+    GroupInfo target_group = 2;
+    Permission permission = 3;
+}
+
+message GrantPermissionToGroupOnAllResponse {}
