@@ -173,6 +173,7 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
                 sb.append(" WHERE ");
                 sb.append(rewriteWhereClauseFilters(sqlNode, metadataSchemas, tableAliases));
             }
+            sb.append(" ORDER BY data_product_id DESC ");
         } else if (sqlNode instanceof SqlBasicCall unionNode &&
                 ((SqlBasicCall) sqlNode).getOperator().getKind() == SqlKind.UNION) {
 
@@ -196,12 +197,47 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
 
     String writeCommonTableExpressions(UserEntity userEntity, Collection<MetadataSchemaEntity> metadataSchemas) {
         StringBuilder sb = new StringBuilder();
-        List<String> commonTableExpressions = new ArrayList<>();
+        List<String> ctes = new ArrayList<>();
+        long userDbId = userEntity.getUserId(); // userEntity -> user -> getUserId()
+        List<String> groupIds = userEntity.getGroupIds();
+        // user_group_union CTE
+        // (simple_data_product_sharing_view, integer)
+        //union (simple_group_sharing, varchar)
+        StringBuilder unionCte = new StringBuilder();
+        unionCte.append("user_group_union AS (");
+
+        //user_id = userDbId, permission_id in (0,1) => OWNER=0,READ=1
+        unionCte.append(" SELECT data_product_id FROM ")
+                .append(sharingManager.getDataProductSharingView()) // "simple_data_product_sharing_view"
+                .append(" WHERE user_id = ")
+                .append(userDbId)
+                .append(" AND permission_id IN (")
+                .append(Permission.OWNER.getNumber())
+                .append(",")
+                .append(Permission.READ.getNumber())
+                .append(")");
+
+        if (groupIds != null && !groupIds.isEmpty()) {
+            unionCte.append(" UNION SELECT sgs.data_product_id ")
+                    .append(" FROM simple_group_sharing sgs ")
+                    .append(" JOIN simple_group g ON g.simple_group_id = sgs.simple_group_id ")
+                    .append(" WHERE sgs.permission_id IN ('READ') ")
+                    .append("   AND g.external_id IN (");
+            for (int i = 0; i < groupIds.size(); i++) {
+                if (i > 0) unionCte.append(",");
+                unionCte.append("'").append(groupIds.get(i).replace("'", "''")).append("'");
+            }
+            unionCte.append(")");
+        }
+        unionCte.append(")"); // end of user_group_union
+
+        ctes.add(unionCte.toString());
         for (MetadataSchemaEntity metadataSchema : metadataSchemas) {
-            commonTableExpressions.add(writeCommonTableExpression(userEntity, metadataSchema));
+            String cteForSchema = writeCommonTableExpression(userEntity, metadataSchema);
+            ctes.add(cteForSchema);
         }
         sb.append("WITH ");
-        sb.append(String.join(", ", commonTableExpressions));
+        sb.append(String.join(", ", ctes));
         return sb.toString();
     }
 
@@ -219,18 +255,21 @@ public class PostgresqlMetadataSchemaQueryWriterImpl implements MetadataSchemaQu
         sb.append("from data_product dp_ ");
         sb.append("inner join data_product_metadata_schema dpms_ on dpms_.data_product_id = dp_.data_product_id ");
         sb.append("inner join metadata_schema ms_ on ms_.metadata_schema_id = dpms_.metadata_schema_id ");
-        sb.append("inner join ");
-        sb.append(sharingManager.getDataProductSharingView());
-        sb.append(" dpsv_ on dpsv_.data_product_id = dp_.data_product_id ");
-        sb.append("and dpsv_.user_id = ");
+        //sb.append("inner join ");
+        //sb.append(sharingManager.getDataProductSharingView());
+        //sb.append(" dpsv_ on dpsv_.data_product_id = dp_.data_product_id ");
+        //sb.append("and dpsv_.user_id = ");
         // TODO: change these to be bound parameters
-        sb.append(userEntity.getUserId());
-        sb.append(" and dpsv_.permission_id in (");
-        sb.append(Permission.OWNER.getNumber());
-        sb.append(",");
-        sb.append(Permission.READ_METADATA.getNumber());
-        sb.append(") ");
-        sb.append("where ms_.metadata_schema_id = " + metadataSchemaEntity.getMetadataSchemaId());
+        //sb.append(userEntity.getUserId());
+        //sb.append(" and dpsv_.permission_id in (");
+        // sb.append(Permission.OWNER.getNumber());
+        //sb.append(",");
+        //sb.append(Permission.READ.getNumber());
+        //sb.append(") ");
+        //sb.append("where ms_.metadata_schema_id = " + metadataSchemaEntity.getMetadataSchemaId());
+        sb.append("   WHERE dp_.data_product_id IN (SELECT data_product_id FROM user_group_union)");
+        sb.append("     AND ms_.metadata_schema_id = ");
+        sb.append(metadataSchemaEntity.getMetadataSchemaId());
         sb.append(")");
         return sb.toString();
     }

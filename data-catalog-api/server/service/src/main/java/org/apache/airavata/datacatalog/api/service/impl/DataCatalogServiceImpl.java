@@ -127,6 +127,8 @@ public class DataCatalogServiceImpl implements DataCatalogService {
             throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
         try {
             UserEntity userEntity = sharingManager.resolveUser(userInfo);
+            userEntity.getGroupIds().clear();
+            userEntity.getGroupIds().addAll(userInfo.getGroupIdsList());
             return metadataSchemaQueryExecutor.execute(userEntity, sql, page, pageSize);
         } catch (SharingException e) {
             throw new RuntimeException("Unable to resolve " + userInfo, e);

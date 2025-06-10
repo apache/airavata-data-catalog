@@ -473,4 +473,249 @@ public class SimpleSharingManagerImplTest {
 
     }
 
+    /**
+     * This test ensures a user who is the sole owner of a data product always has OWNER permission,
+     * even if they belong to no groups.
+     */
+    @Test
+    public void testOwnerHasAccessEvenWithoutGroups() throws SharingException {
+        UserInfo userA = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("ownerUser")
+                .build();
+        UserEntity ownerUserEntity = simpleSharingManagerImpl.resolveUser(userA);
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(ownerUserEntity);
+        dataProductEntity.setName("Owner-only data product");
+        dataProductRepository.save(dataProductEntity);
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+        simpleSharingManagerImpl.grantPermissionToUser(userA, dataProduct, Permission.OWNER, userA);
+        boolean hasOwnerAccess = simpleSharingManagerImpl.userHasAccess(userA, dataProduct, Permission.OWNER);
+        assertTrue(hasOwnerAccess, "Owner should have OWNER permission even with no groups in the test scenario");
+    }
+
+
+    /**
+     * This test checks that a user who is not directly granted permissions but is in a group
+     * that has READ permission can access a data product.
+     */
+    @Test
+    public void testUserInGroupHasReadAccess() throws SharingException {
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("ownerUser").build();
+        simpleSharingManagerImpl.resolveUser(userA);
+        UserInfo userB = UserInfo.newBuilder().setTenantId("tenantId").setUserId("groupMember").build();
+        simpleSharingManagerImpl.resolveUser(userB);
+        GroupInfo testGroup = GroupInfo.newBuilder().setGroupId("readersGroup").setTenantId("tenantId").build();
+        SimpleGroupEntity testGroupEntity = new SimpleGroupEntity();
+        testGroupEntity.setName(testGroup.getGroupId());
+        testGroupEntity.setExternalId(testGroup.getGroupId());
+        Optional<SimpleUserEntity> userBEntity = simpleUserRepository.findByExternalIdAndSimpleTenant_ExternalId(
+                userB.getUserId(), userB.getTenantId());
+        assertTrue(userBEntity.isPresent());
+        testGroupEntity.getMemberUsers().add(userBEntity.get());
+        testGroupEntity.setSimpleTenant(userBEntity.get().getSimpleTenant());
+        simpleGroupRepository.save(testGroupEntity);
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setName("Group accessible data product");
+        dataProductEntity.setOwner(userRepository.findByExternalIdAndTenant_ExternalId(userA.getUserId(),
+                userA.getTenantId()).orElseThrow());
+        dataProductRepository.save(dataProductEntity);
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+        simpleSharingManagerImpl.grantPermissionToGroup(testGroup, dataProduct, Permission.READ, userA);
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ),
+                "User in group should have READ access via group's READ permission");
+    }
+
+    /**
+     * This test verifies that a user who only has READ permission through a group
+     * does NOT have OWNER or WRITE_METADATA permission to the data product.
+     */
+    @Test
+    public void testUserInGroupHasOnlyReadNotOwner() throws SharingException {
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("ownerUser").build();
+        simpleSharingManagerImpl.resolveUser(userA);
+        UserInfo userB = UserInfo.newBuilder().setTenantId("tenantId").setUserId("readOnlyUser").build();
+        simpleSharingManagerImpl.resolveUser(userB);
+        GroupInfo readGroup = GroupInfo.newBuilder().setGroupId("readonlyGroup").setTenantId("tenantId").build();
+        SimpleGroupEntity groupEntity = new SimpleGroupEntity();
+        groupEntity.setExternalId(readGroup.getGroupId());
+        groupEntity.setName(readGroup.getGroupId());
+        Optional<SimpleUserEntity> userBEntity = simpleUserRepository.findByExternalIdAndSimpleTenant_ExternalId(
+                userB.getUserId(), userB.getTenantId());
+        assertTrue(userBEntity.isPresent());
+        groupEntity.getMemberUsers().add(userBEntity.get());
+        groupEntity.setSimpleTenant(userBEntity.get().getSimpleTenant());
+        simpleGroupRepository.save(groupEntity);
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setName("Read-only data product");
+        dataProductEntity.setOwner(userRepository.findByExternalIdAndTenant_ExternalId(userA.getUserId(),
+                userA.getTenantId()).orElseThrow());
+        dataProductRepository.save(dataProductEntity);
+
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+        simpleSharingManagerImpl.grantPermissionToGroup(readGroup, dataProduct, Permission.READ, userA);
+        assertTrue(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ),
+                "User should have READ permission");
+        assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.OWNER),
+                "User should not have OWNER permission");
+        assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.WRITE_METADATA),
+                "User should not have WRITE_METADATA permission");
+    }
+
+    /**
+     * This test checks that if the user is neither the owner nor part of any group
+     * that has permissions, they cannot access the data product.
+     */
+    @Test
+    public void testUserWithoutAnyPermissionCannotAccess() throws SharingException {
+        UserInfo userA = UserInfo.newBuilder().setTenantId("tenantId").setUserId("ownerUser").build();
+        UserEntity ownerUserEntity = simpleSharingManagerImpl.resolveUser(userA);
+        UserInfo userB = UserInfo.newBuilder().setTenantId("tenantId").setUserId("noPermUser").build();
+        simpleSharingManagerImpl.resolveUser(userB);
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(ownerUserEntity);
+        dataProductEntity.setName("No-permission data product");
+        dataProductRepository.save(dataProductEntity);
+        // Verify userB cannot READ
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+        assertFalse(simpleSharingManagerImpl.userHasAccess(userB, dataProduct, Permission.READ),
+                "User with no group or direct permission should not have READ access");
+    }
+
+    /**
+     * Test that a user with only userId (i.e. no groupIds provided)
+     * can see the data product they own.
+     */
+    @Test
+    public void testSearchDataProductByOwner() throws SharingException {
+        UserInfo ownerOnly = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("ownerOnly")
+                .build();
+        UserEntity ownerEntity = simpleSharingManagerImpl.resolveUser(ownerOnly);
+
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(ownerEntity);
+        dataProductEntity.setName("Owned Data Product");
+        dataProductRepository.save(dataProductEntity);
+
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+
+        simpleSharingManagerImpl.grantPermissionToUser(ownerOnly, dataProduct, Permission.OWNER, ownerOnly);
+        //READ is in OWNER
+        assertTrue(simpleSharingManagerImpl.userHasAccess(ownerOnly, dataProduct, Permission.READ),
+                "User with only userId should see data product they own");
+    }
+
+    /**
+     * Test that when UserInfo explicitly includes a groupId,
+     * the user can see the data product that has been shared with that group.
+     */
+    @Test
+    public void testSearchDataProductByGroupMembershipWithExplicitGroupId() throws SharingException {
+        UserInfo owner = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("ownerUser_explicitGroup")
+                .build();
+        UserEntity ownerEntity = simpleSharingManagerImpl.resolveUser(owner);
+
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(ownerEntity);
+        dataProductEntity.setName("Group Shared Data Product");
+        dataProductRepository.save(dataProductEntity);
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+        UserInfo groupUser = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("groupUser_explicitGroup")
+                .build();
+        simpleSharingManagerImpl.resolveUser(groupUser);
+        Optional<SimpleUserEntity> groupUserEntityOpt = simpleUserRepository
+                .findByExternalIdAndSimpleTenant_ExternalId(groupUser.getUserId(), groupUser.getTenantId());
+        assertTrue(groupUserEntityOpt.isPresent());
+        SimpleGroupEntity groupEntity = new SimpleGroupEntity();
+        groupEntity.setName("explicitGroup");
+        groupEntity.setExternalId("explicitGroup");
+        groupEntity.getMemberUsers().add(groupUserEntityOpt.get());
+        groupEntity.setSimpleTenant(groupUserEntityOpt.get().getSimpleTenant());
+        simpleGroupRepository.save(groupEntity);
+        simpleSharingManagerImpl.grantPermissionToGroup(
+                GroupInfo.newBuilder().setGroupId("explicitGroup").setTenantId("tenantId").build(),
+                dataProduct,
+                Permission.READ,
+                owner);
+        UserInfo groupUserWithGroup = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("groupUser_explicitGroup")
+                .addGroupIds("explicitGroup")
+                .build();
+        assertTrue(simpleSharingManagerImpl.userHasAccess(groupUserWithGroup, dataProduct, Permission.READ),
+                "User with explicit groupIds should see group shared data product");
+    }
+
+    /**
+     * Test that if a user is not a member of the group (i.e. their UserInfo does not include the shared group),
+     * then even if a group sharing exists, they cannot access the data product.
+     */
+    @Test
+    public void testGroupAccessNotAppliedWhenUserIsNotMember() throws SharingException {
+        UserInfo owner = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("ownerUser_nonMember")
+                .build();
+        UserEntity ownerEntity = simpleSharingManagerImpl.resolveUser(owner);
+
+        DataProductEntity dataProductEntity = new DataProductEntity();
+        dataProductEntity.setExternalId(UUID.randomUUID().toString());
+        dataProductEntity.setOwner(ownerEntity);
+        dataProductEntity.setName("Group Shared Data Product NonMember");
+        dataProductRepository.save(dataProductEntity);
+        DataProduct dataProduct = DataProduct.newBuilder()
+                .setDataProductId(dataProductEntity.getExternalId())
+                .build();
+        UserInfo groupUser = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("groupUser_nonMember")
+                .build();
+        simpleSharingManagerImpl.resolveUser(groupUser);
+        Optional<SimpleUserEntity> groupUserEntityOpt = simpleUserRepository
+                .findByExternalIdAndSimpleTenant_ExternalId(groupUser.getUserId(), groupUser.getTenantId());
+        assertTrue(groupUserEntityOpt.isPresent());
+        SimpleGroupEntity groupEntity = new SimpleGroupEntity();
+        groupEntity.setName("nonMemberGroup");
+        groupEntity.setExternalId("nonMemberGroup");
+        groupEntity.getMemberUsers().add(groupUserEntityOpt.get());
+        groupEntity.setSimpleTenant(groupUserEntityOpt.get().getSimpleTenant());
+        simpleGroupRepository.save(groupEntity);
+        simpleSharingManagerImpl.grantPermissionToGroup(
+                GroupInfo.newBuilder().setGroupId("nonMemberGroup").setTenantId("tenantId").build(),
+                dataProduct,
+                Permission.READ,
+                owner);
+        UserInfo nonMemberUser = UserInfo.newBuilder()
+                .setTenantId("tenantId")
+                .setUserId("nonMemberUser")
+                .build();
+        assertFalse(simpleSharingManagerImpl.userHasAccess(nonMemberUser, dataProduct, Permission.READ),
+                "User not a member of the group should not see group shared data product");
+    }
+
+
 }
