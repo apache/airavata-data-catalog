@@ -1,0 +1,193 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+package org.apache.airavata.replicacatalog.resource.stubs.common;
+
+import "resource/S3Storage.proto";
+import "resource/FTPStorage.proto";
+import "resource/LocalStorage.proto";
+import "resource/GCSStorage.proto";
+import "catalogapi/ReplicaCatalogAPI.proto";
+
+
+//enum StorageType {
+//  S3 = 0;
+//  SCP = 1;
+//  FTP = 2;
+//  LOCAL = 3;
+//  BOX = 4;
+//  DROPBOX = 5;
+//  GCS = 6;
+//  AZURE = 7;
+//  SWIFT = 8;
+//  ODATA = 9;
+//}
+
+enum Error {
+  NOT_FOUND = 0;
+  NO_PERMISSION = 1;
+  LIMIT_OVERFLOWED = 2;
+}
+
+message StorageTypeResolveRequest {
+  string storage_id = 1;
+}
+
+message StorageTypeResolveResponse {
+  string storage_id = 1;
+  string storage_name = 2;
+  StorageType storage_type = 3;
+  Error error = 4;
+}
+
+
+message FileResource {
+  string resource_path = 1;
+}
+
+message DirectoryResource {
+  string resource_path = 1;
+}
+
+message GenericResource {
+
+  string resource_id = 1;
+  string replica_id = 2;
+  oneof resource {
+    org.apache.airavata.replicacatalog.resource.stubs.common.FileResource file = 3;
+    org.apache.airavata.replicacatalog.resource.stubs.common.DirectoryResource directory = 4;
+  }
+  StorageWrapper storage = 5;
+
+}
+
+// Storage wrapper which holds the different storages like S3, GCS, Azura ...
+message StorageWrapper {
+  oneof storage {
+    org.apache.airavata.replicacatalog.resource.stubs.s3.S3Storage s3Storage = 1;
+    org.apache.airavata.replicacatalog.resource.stubs.local.LocalStorage localStorage = 2;
+    org.apache.airavata.replicacatalog.resource.stubs.gcs.GCSStorage gcsStorage = 3;
+    org.apache.airavata.replicacatalog.resource.stubs.ftp.FTPStorage ftpStorage = 4;
+  }
+}
+
+message GenericResourceGetRequest {
+  string replica_id = 1;
+  string resource_id = 2;
+}
+
+message GenericResourceCreateRequest {
+  string storage_id = 1;
+  GenericResource resource = 2;
+}
+
+message GenericResourceUpdateRequest {
+  string resource_id = 1;
+  string storage_id = 2;
+  oneof resource {
+    org.apache.airavata.replicacatalog.resource.stubs.common.FileResource file = 3;
+    org.apache.airavata.replicacatalog.resource.stubs.common.DirectoryResource directory = 4;
+  }
+  GenericResource genericResource = 5;
+
+}
+
+message GenericResourceUpdateResponse {
+  string resource_id = 1;
+}
+
+message GenericResourceDeleteRequest {
+  string resource_id = 1;
+}
+
+message GenericResourceDeleteResponse {
+  bool status = 1;
+}
+
+// Link storage and secret
+message SecretForStorage {
+  string storage_id = 1;
+  string secret_id = 2;
+  string user_identity = 3;
+  StorageType storage_type = 4;
+  Error error = 5;
+}
+
+message SecretForStorageCreateRequest {
+  SecretForStorage secret_for_storage = 1;
+}
+
+message SecretForStorageGetRequest {
+  string storage_id = 1;
+}
+
+message SecretForStorageDeleteRequest {
+  string storage_id = 1;
+}
+
+message SecretForStorageDeleteResponse {
+  bool status = 1;
+}
+
+message StorageListEntry {
+  string storage_id = 1;
+  string storage_name = 2;
+  string replica_id = 3;
+  StorageType storage_type = 4;
+}
+
+message StorageListResponse {
+  repeated StorageListEntry storage_list = 1;
+}
+
+message StorageListRequest {
+  int32 page_number = 1;
+  int32 page_size = 2;
+}
+
+message StorageSearchRequest {
+  oneof searchQuery {
+    string storage_id = 1;
+    string storage_name = 2;
+    StorageType storage_type = 3;
+  }
+}
+
+
+/*
+ * Replica storage entry related services
+ */
+service StorageCommonService {
+
+  /* Replica catalog resource storage operations */
+  rpc createGenericResource (GenericResourceCreateRequest) returns (GenericResource);           // Create Generic Resource and Create storage
+  rpc getGenericResource (GenericResourceGetRequest) returns (GenericResource);
+  rpc updateGenericResource (GenericResourceUpdateRequest) returns (GenericResourceUpdateResponse);
+  rpc deleteGenericResource (GenericResourceDeleteRequest) returns (GenericResourceDeleteResponse);
+
+  /* Replica catalog resource storage and secret related operations */
+  rpc resolveStorageType (StorageTypeResolveRequest) returns (StorageTypeResolveResponse);      // Get resource type
+  rpc registerSecretForStorage (SecretForStorageCreateRequest) returns (SecretForStorage);      // Add new resource to replica catalog
+  rpc getSecretForStorage (SecretForStorageGetRequest) returns (SecretForStorage);              // Get storage secret using storage ID
+  rpc deleteSecretsForStorage (SecretForStorageDeleteRequest) returns (SecretForStorageDeleteResponse);  // Delete storage secret mapping
+  rpc searchStorages (StorageSearchRequest) returns (StorageListResponse);                       // Search storage secrets using storage id, name or the type
+  rpc listStorages (StorageListRequest) returns (StorageListResponse);                           // List storages secrets
+
+}
