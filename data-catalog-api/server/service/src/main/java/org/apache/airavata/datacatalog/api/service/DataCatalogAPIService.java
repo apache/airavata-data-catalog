@@ -130,7 +130,7 @@ public class DataCatalogAPIService extends DataCatalogAPIServiceGrpc.DataCatalog
         try {
             DataProduct dataProduct = dataCatalogService.getDataProduct(request.getDataProductId());
             // check that user has READ_METADATA access on data product record
-            if (!checkHasPermission(request.getUserInfo(), dataProduct, Permission.READ_METADATA, responseObserver)) {
+            if (!checkHasPermission(request.getUserInfo(), dataProduct, Permission.READ, responseObserver)) {
                 return;
             }
 
