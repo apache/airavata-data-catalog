@@ -29,6 +29,8 @@ import org.apache.airavata.datacatalog.api.service.DataCatalogService;
 import org.apache.airavata.datacatalog.api.sharing.SharingManager;
 import org.apache.airavata.datacatalog.api.sharing.exception.SharingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,6 +147,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
+    @Cacheable(value = "metadataSchemas", key = "'all'")
     public List<MetadataSchema> getMetadataSchemas() {
         return metadataSchemaRepository.findAll().stream()
                 .map(this::toMetadataSchema)
@@ -152,6 +155,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
+    @CacheEvict(value = "metadataSchemas", allEntries = true)
     public MetadataSchema createMetadataSchema(MetadataSchema metadataSchema) {
 
         MetadataSchemaEntity metadataSchemaEntity = new MetadataSchemaEntity();
@@ -181,6 +185,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
     }
 
     @Override
+    @CacheEvict(value = "metadataSchemas", allEntries = true)
     public void deleteMetadataSchema(MetadataSchema metadataSchema) {
         // TODO: check that user has write access on metadata schema
         // TODO: handle metadata schema not found

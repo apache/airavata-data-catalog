@@ -68,12 +68,18 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
     @Autowired
     DataProductMapper dataProductMapper;
 
-    @Override
-    public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql, int page, int pageSize)
-            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
+    private volatile FrameworkConfig cachedConfig = null;
+    private volatile List<MetadataSchemaEntity> lastSchemas = null;
 
-        // Create a schema that contains the data_product table and all of the metadata
-        // schemas
+    private synchronized FrameworkConfig getOrBuildConfig(List<MetadataSchemaEntity> schemas) {
+        if (cachedConfig == null || lastSchemas != schemas) {
+            cachedConfig = buildFrameworkConfig(schemas);
+            lastSchemas = schemas;
+        }
+        return cachedConfig;
+    }
+
+    private FrameworkConfig buildFrameworkConfig(List<MetadataSchemaEntity> metadataSchemas) {
         SchemaPlus schema = Frameworks.createRootSchema(true);
         schema.add("data_product", new AbstractTable() {
             @Override
@@ -88,10 +94,7 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
             }
         });
 
-        // TODO: limit by tenant id
-        List<MetadataSchemaEntity> metadataSchemas = metadataSchemaRepository.findAll();
         for (MetadataSchemaEntity metadataSchema : metadataSchemas) {
-
             schema.add(metadataSchema.getSchemaName(), new AbstractTable() {
                 @Override
                 public RelDataType getRowType(RelDataTypeFactory typeFactory) {
@@ -114,14 +117,25 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
             });
         }
 
-        FrameworkConfig config = Frameworks.newConfigBuilder()
+        return Frameworks.newConfigBuilder()
                 .defaultSchema(schema)
                 .parserConfig(SqlParser.Config.DEFAULT.withUnquotedCasing(Casing.TO_LOWER))
                 .build();
+    }
+
+    @Override
+    public MetadataSchemaQueryResult execute(UserEntity userEntity, String sql, int page, int pageSize)
+            throws MetadataSchemaSqlParseException, MetadataSchemaSqlValidateException {
+
+        // TODO: limit by tenant id
+        List<MetadataSchemaEntity> metadataSchemas = metadataSchemaRepository.findAll();
+
+        FrameworkConfig config = getOrBuildConfig(metadataSchemas);
         Planner planner = Frameworks.getPlanner(config);
 
         SqlNode sqlNode = parse(planner, sql);
 
+        SchemaPlus schema = config.getDefaultSchema();
         SqlValidator validator = getValidator(schema, config, planner);
 
         // Validate the query
@@ -172,10 +186,10 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
         Number countResult = (Number) entityManager.createNativeQuery(countSql).getSingleResult();
         int totalCount = countResult.intValue();
 
-        if (page > 0 && pageSize >0) {
-        // offset
-        int offset = (page - 1) * pageSize;
-        finalSql = finalSql + " LIMIT " + pageSize + " OFFSET " + offset;
+        if (page > 0 && pageSize > 0) {
+            // offset
+            int offset = (page - 1) * pageSize;
+            finalSql = finalSql + " LIMIT " + pageSize + " OFFSET " + offset;
         }
 
         List<DataProductEntity> dataProductEntities = entityManager.createNativeQuery(finalSql, DataProductEntity.class)
@@ -183,9 +197,8 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
 
         List<DataProduct> dataProducts = new ArrayList<>();
         for (DataProductEntity dataProductEntity : dataProductEntities) {
-
             org.apache.airavata.datacatalog.api.DataProduct.Builder dpBuilder = DataProduct.newBuilder();
-            dataProductMapper.mapEntityToModel(dataProductEntity, dpBuilder);
+            dataProductMapper.mapEntityToModelForList(dataProductEntity, dpBuilder);
             dataProducts.add(dpBuilder.build());
         }
         return new MetadataSchemaQueryResult(dataProducts, totalCount);

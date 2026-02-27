@@ -1,5 +1,8 @@
 package org.apache.airavata.datacatalog.api.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.exception.EntityNotFoundException;
 import org.apache.airavata.datacatalog.api.model.DataProductEntity;
@@ -8,10 +11,6 @@ import org.apache.airavata.datacatalog.api.repository.DataProductRepository;
 import org.apache.airavata.datacatalog.api.repository.MetadataSchemaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Map to/from
@@ -64,17 +63,28 @@ public class DataProductMapper {
     }
 
     public void mapEntityToModel(DataProductEntity dataProductEntity, DataProduct.Builder dataProductBuilder) {
+        mapEagerFields(dataProductEntity, dataProductBuilder);
+        if (dataProductEntity.getMetadataSchemas() != null) {
+            for (MetadataSchemaEntity metadataSchema : dataProductEntity.getMetadataSchemas()) {
+                dataProductBuilder.addMetadataSchemas(metadataSchema.getSchemaName());
+            }
+        }
+        userInfoMapper.mapEntityToModel(dataProductEntity.getOwner(), dataProductBuilder.getOwnerBuilder());
+    }
 
+    // Lightweight mapping for search list results. Skips metadataSchemas and owner
+    public void mapEntityToModelForList(DataProductEntity dataProductEntity, DataProduct.Builder dataProductBuilder) {
+        mapEagerFields(dataProductEntity, dataProductBuilder);
+        // metadataSchemas and owner intentionally skipped as they are not needed for list views
+    }
+
+    // Maps fields that do not trigger lazy loads -> id, name, parentId, metadata
+    private void mapEagerFields(DataProductEntity dataProductEntity, DataProduct.Builder dataProductBuilder) {
         dataProductBuilder
                 .setDataProductId(dataProductEntity.getExternalId())
                 .setName(dataProductEntity.getName());
         if (dataProductEntity.getParentDataProductEntity() != null) {
             dataProductBuilder.setParentDataProductId(dataProductEntity.getParentDataProductEntity().getExternalId());
-        }
-        if (dataProductEntity.getMetadataSchemas() != null) {
-            for (MetadataSchemaEntity metadataSchema : dataProductEntity.getMetadataSchemas()) {
-                dataProductBuilder.addMetadataSchemas(metadataSchema.getSchemaName());
-            }
         }
         if (dataProductEntity.getMetadata() != null) {
             ObjectMapper mapper = new ObjectMapper();
@@ -84,7 +94,5 @@ public class DataProductMapper {
                 throw new RuntimeException(e);
             }
         }
-
-        userInfoMapper.mapEntityToModel(dataProductEntity.getOwner(), dataProductBuilder.getOwnerBuilder());
     }
 }
