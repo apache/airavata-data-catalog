@@ -1,0 +1,40 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+                        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-02-25-idx-dpms-schema-id" author="performance">
+        <!-- CRITICAL: Speeds up the CTE inner join that filters by schema on every search -->
+        <createIndex tableName="data_product_metadata_schema" indexName="idx_dpms_schema_id">
+            <column name="metadata_schema_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-02-25-idx-sus-user-perm" author="performance">
+        <!-- HIGH: Speeds up user permission lookups in the recursive CTE -->
+        <createIndex tableName="simple_user_sharing" indexName="idx_sus_user_perm">
+            <column name="simple_user_id"/>
+            <column name="permission_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-02-25-idx-sgs-group-perm" author="performance">
+        <!-- HIGH: Speeds up group permission lookups -->
+        <createIndex tableName="simple_group_sharing" indexName="idx_sgs_group_perm">
+            <column name="simple_group_id"/>
+            <column name="permission_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-02-25-idx-sg-external-id" author="performance">
+        <!-- MEDIUM: Speeds up group ID lookups for token-based group filtering -->
+        <createIndex tableName="simple_group" indexName="idx_sg_external_id">
+            <column name="external_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

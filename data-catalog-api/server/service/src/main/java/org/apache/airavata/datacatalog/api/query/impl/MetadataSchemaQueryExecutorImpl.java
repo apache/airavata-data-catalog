@@ -1,11 +1,6 @@
 package org.apache.airavata.datacatalog.api.query.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import jakarta.persistence.EntityManager;
 import org.apache.airavata.datacatalog.api.DataProduct;
 import org.apache.airavata.datacatalog.api.FieldValueType;
 import org.apache.airavata.datacatalog.api.exception.MetadataSchemaSqlParseException;
@@ -49,7 +44,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecutor {
@@ -69,12 +68,16 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
     DataProductMapper dataProductMapper;
 
     private volatile FrameworkConfig cachedConfig = null;
-    private volatile List<MetadataSchemaEntity> lastSchemas = null;
+    private volatile List<String> lastSchemaNames = null;
 
     private synchronized FrameworkConfig getOrBuildConfig(List<MetadataSchemaEntity> schemas) {
-        if (cachedConfig == null || lastSchemas != schemas) {
+        List<String> currentNames = schemas.stream()
+                .map(MetadataSchemaEntity::getSchemaName)
+                .toList();
+        if (cachedConfig == null || !currentNames.equals(lastSchemaNames)) {
+            logger.debug("Rebuilding FrameworkConfig for schemas: {}", currentNames);
             cachedConfig = buildFrameworkConfig(schemas);
-            lastSchemas = schemas;
+            lastSchemaNames = currentNames;
         }
         return cachedConfig;
     }
