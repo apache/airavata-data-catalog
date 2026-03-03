@@ -98,6 +98,11 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
         });
 
         for (MetadataSchemaEntity metadataSchema : metadataSchemas) {
+            List<Map.Entry<String, SqlTypeName>> fieldSnapshots = new ArrayList<>();
+            for (MetadataSchemaFieldEntity field : metadataSchema.getMetadataSchemaFields()) {
+                fieldSnapshots.add(Map.entry(field.getFieldName(), getSqlTypeName(field.getFieldValueType())));
+            }
+
             schema.add(metadataSchema.getSchemaName(), new AbstractTable() {
                 @Override
                 public RelDataType getRowType(RelDataTypeFactory typeFactory) {
@@ -110,9 +115,8 @@ public class MetadataSchemaQueryExecutorImpl implements MetadataSchemaQueryExecu
                             .add("metadata", SqlTypeName.OTHER);
 
                     // Add all of the schema specific metadata fields
-                    for (MetadataSchemaFieldEntity metadataSchemaField : metadataSchema.getMetadataSchemaFields()) {
-                        builder.add(metadataSchemaField.getFieldName(),
-                                getSqlTypeName(metadataSchemaField.getFieldValueType()));
+                    for (Map.Entry<String, SqlTypeName> field : fieldSnapshots) {
+                        builder.add(field.getKey(), field.getValue());
                     }
 
                     return builder.build();
