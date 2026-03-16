@@ -30,6 +30,7 @@ under the License.
 
   <modules>
     <module>data-catalog-api</module>
+    <module>replica-catalog-api</module>
   </modules>
 
   <properties>
@@ -47,6 +48,10 @@ under the License.
     <grpc.version>1.52.1</grpc.version>
     <protoc-gen-grpc-java.version>${grpc.version}</protoc-gen-grpc-java.version>
     <tomcat.annotations-api.version>6.0.53</tomcat.annotations-api.version>
+    <hypersistence.60.version>3.1.1</hypersistence.60.version>
+    <jackson.jakarta.version>2.14.1</jackson.jakarta.version>
+    <dozer.version>5.5.1</dozer.version>
+    <jupiter.version>5.8.1</jupiter.version>
   </properties>
 
   <dependencies>
